@@ -78,6 +78,7 @@ describe("isValidSharedPin", () => {
   });
 
   it("rejects when id is missing", () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id: _id, ...rest } = validPayload();
     expect(isValidSharedPin(rest)).toBe(false);
   });

@@ -142,7 +142,6 @@ export class AudioRecorder {
           for (let ch = 0; ch < nChannels; ch++) {
             // ScriptProcessorNode is deprecated but universally supported.
             // AudioWorklet requires a worker file — not worth the complexity here.
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const proc = ctx.createScriptProcessor(4096, 1, 1);
             const chIdx = ch;
             const bufs = this.channelBuffers;
