@@ -82,8 +82,16 @@ export default function LandingMap({ communityPins }: Props) {
   useEffect(() => {
     if (!containerRef.current) return;
     let map: MapLike | null = null;
+    let cancelled = false;
 
-    (async () => {
+    // Defer MapLibre load until after the browser is idle — it's decorative
+    // on the landing page and its 1MB parse cost caused 2.5s TBT otherwise.
+    const idle = typeof requestIdleCallback !== "undefined"
+      ? (cb: () => void) => requestIdleCallback(cb, { timeout: 3000 })
+      : (cb: () => void) => setTimeout(cb, 200);
+
+    idle(async () => {
+      if (cancelled) return;
       const ml = await import("maplibre-gl");
       await import("maplibre-gl/dist/maplibre-gl.css");
       ml.setWorkerUrl("/maplibre-worker.js");
@@ -109,9 +117,10 @@ export default function LandingMap({ communityPins }: Props) {
         }
       };
       map.on("load", onLoad);
-    })();
+    });
 
     return () => {
+      cancelled = true;
       if (map) map.remove();
       mapRef.current = null;
     };
