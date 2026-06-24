@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Radio, Copy, Check, LogIn, LogOut, Users, Zap, MapPin } from "lucide-react";
 import {
   getDeviceId,
@@ -41,12 +41,12 @@ export default function MultiDevicePanel({ currentDba, gps, peakDb, peakAt }: Pr
   const [code, setCode] = useState("");
   const [joinInput, setJoinInput] = useState("");
   const [peers, setPeers] = useState<Map<string, SessionPeer>>(new Map());
-  const [tdoa, setTdoa] = useState<TDOAResult | null>(null);
   const [copied, setCopied] = useState(false);
   const [joinError, setJoinError] = useState("");
   const unsubRef = useRef<(() => void) | null>(null);
   const codeRef = useRef(code);
-  const myId = useRef(getDeviceId());
+  // Stable device ID — set once, never changes
+  const [myId] = useState(() => getDeviceId());
 
   // Broadcast current reading when in a session
   useEffect(() => {
@@ -60,11 +60,9 @@ export default function MultiDevicePanel({ currentDba, gps, peakDb, peakAt }: Pr
     });
   }, [mode, code, currentDba, gps, peakDb, peakAt]);
 
-  // Recompute TDOA whenever peers change
-  useEffect(() => {
-    if (mode === "idle") { setTdoa(null); return; }
-    const peerList = Array.from(peers.values());
-    setTdoa(computeTDOA(peerList));
+  const tdoa = useMemo<TDOAResult | null>(() => {
+    if (mode === "idle") return null;
+    return computeTDOA(Array.from(peers.values()));
   }, [peers, mode]);
 
   const startSession = useCallback(() => {
@@ -94,7 +92,6 @@ export default function MultiDevicePanel({ currentDba, gps, peakDb, peakAt }: Pr
     setMode("idle");
     setCode("");
     setPeers(new Map());
-    setTdoa(null);
     setJoinInput("");
     setJoinError("");
   }, [code]);
@@ -116,7 +113,7 @@ export default function MultiDevicePanel({ currentDba, gps, peakDb, peakAt }: Pr
     };
   }, []);
 
-  const activePeers = Array.from(peers.values()).filter((p) => p.active && p.id !== myId.current);
+  const activePeers = Array.from(peers.values()).filter((p) => p.active && p.id !== myId);
   const allActive = Array.from(peers.values()).filter((p) => p.active);
 
   return (
@@ -220,7 +217,7 @@ export default function MultiDevicePanel({ currentDba, gps, peakDb, peakAt }: Pr
             ) : (
               <div className="flex flex-col gap-1.5">
                 {allActive.map((peer) => {
-                  const isMe = peer.id === myId.current;
+                  const isMe = peer.id === myId;
                   return (
                     <div
                       key={peer.id}

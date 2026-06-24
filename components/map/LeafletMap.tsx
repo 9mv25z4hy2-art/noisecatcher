@@ -380,7 +380,7 @@ export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDele
         };
       }
     });
-  }, [ready, refreshKey, filterCategory, filterDb, densityMode, t]);
+  }, [ready, refreshKey, filterCategory, filterDb, densityMode, t, onPinDeleted]);
 
   /* ── Community P2P pins layer ───────────────────────── */
   useEffect(() => {

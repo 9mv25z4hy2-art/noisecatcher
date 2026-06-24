@@ -70,7 +70,8 @@ export default function ComplaintLetter({ pins, reports = [], onClose }: Props) 
   useEffect(() => {
     if (!stats) return;
     const { lat, lng } = stats.location;
-    setLocationAddress(null);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLocationAddress(null); // reset stale address before new fetch
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 6000);
     fetch(

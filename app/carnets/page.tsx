@@ -32,14 +32,22 @@ export default function CarnetsPage() {
 
   const create = async () => {
     if (!name.trim()) return;
-    const c = await saveCarnet({ name: name.trim(), notes, color });
-    setCarnets((prev) => [c, ...prev]);
-    setName(""); setNotes(""); setColor(COLORS[0]); setShowNew(false);
+    try {
+      const c = await saveCarnet({ name: name.trim(), notes, color });
+      setCarnets((prev) => [c, ...prev]);
+      setName(""); setNotes(""); setColor(COLORS[0]); setShowNew(false);
+    } catch (err) {
+      console.error("[carnets] saveCarnet failed:", err);
+    }
   };
 
   const remove = async (id: string) => {
-    await deleteCarnet(id);
-    setCarnets((prev) => prev.filter((c) => c.id !== id));
+    try {
+      await deleteCarnet(id);
+      setCarnets((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      console.error("[carnets] deleteCarnet failed:", err);
+    }
   };
 
   const refreshAll = () => {

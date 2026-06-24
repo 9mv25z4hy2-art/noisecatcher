@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Relay server is plain Node.js CommonJS — not part of the Next.js app
+    "relay/**",
+    // Vendored MapLibre GL worker bundle — third-party minified code
+    "public/maplibre-worker.js",
   ]),
 ]);
 

@@ -332,7 +332,7 @@ export default function AudioImporter() {
                           </div>
                           {linked && (
                             <span className="text-[9px]" style={{ color: "rgba(52,211,153,0.7)" }}>
-                              "{classifications[0].label}" saved to report.
+                              &quot;{classifications[0].label}&quot; saved to report.
                             </span>
                           )}
                         </div>
