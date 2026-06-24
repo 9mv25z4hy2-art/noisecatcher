@@ -3,7 +3,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "env": {
-    "NEXT_PUBLIC_GUN_PEERS": "https://your-relay.tld/gun"
+    "NEXT_PUBLIC_GUN_PEERS": "https://noisecatcher-relay-production.up.railway.app/gun"
   },
   "headers": [
     {

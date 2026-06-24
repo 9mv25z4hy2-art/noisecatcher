@@ -41,6 +41,9 @@ setInterval(() => {
 
 app.use(rateLimiter);
 
+// Health check for Railway / uptime monitors
+app.get("/", (_req, res) => res.json({ ok: true, service: "noisecatcher-relay" }));
+
 // ── Write-size guard ───────────────────────────────────────────────────────────
 // Gun sends PUT payloads as JSON. Reject bodies over 64 KB to prevent
 // the relay being used as a free message store for arbitrary data.
