@@ -14,19 +14,13 @@ import type GunType from "gun";
 let gunInstance: any = null;
 
 // Read custom relay from env (set NEXT_PUBLIC_GUN_PEERS=url1,url2 in .env.local)
+// All known public relays (gun.eco, gun.o8.is, peer.wallie.io) are down as of 2026.
+// P2P is disabled by default — set NEXT_PUBLIC_GUN_PEERS to your own relay to enable.
+// Self-host: node relay/server.js  (recommended: Flokinet, Greenhost, or Njalla)
 function buildPeerList(): string[] {
   const envPeers = process.env.NEXT_PUBLIC_GUN_PEERS;
   if (envPeers) return envPeers.split(",").map((p) => p.trim()).filter(Boolean);
-
-  // Fallback community relays — set NEXT_PUBLIC_GUN_PEERS for production.
-  // Self-host: npx gun  (recommended: Flokinet, Greenhost, or Njalla).
-  // The Heroku-hosted public relays (gun-manhattan, gun-us, gun-eu) were
-  // shut down when Heroku ended free tier in November 2022 — removed.
-  // peer.wallie.io went down mid-2026 (Cloudflare 530 / origin DNS error) — removed.
-  return [
-    "https://gun.eco/gun",
-    "https://gun.o8.is/gun",
-  ];
+  return [];
 }
 
 export type GunConnectionState = "connecting" | "connected" | "offline";
