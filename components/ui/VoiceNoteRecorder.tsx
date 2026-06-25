@@ -31,6 +31,7 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
   const [elapsed, setElapsed] = useState(0);
   const [savedNote, setSavedNote] = useState<VoiceNote | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [debugInfo, setDebugInfo] = useState("");
   const [liveTranscript, setLiveTranscript] = useState("");
   const [showTranscript, setShowTranscript] = useState(false);
   const mediaRef = useRef<MediaRecorder | null>(null);
@@ -103,7 +104,10 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
       mr.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
         if (!mountedRef.current) return;
-        const blob = new Blob(chunksRef.current, { type: mr.mimeType || chosenMime || "audio/mp4" });
+        const actualMime = mr.mimeType || chosenMime || "audio/mp4";
+        const blob = new Blob(chunksRef.current, { type: actualMime });
+        // DEBUG — remove after confirming recording works on iOS
+        setDebugInfo(`chunks:${chunksRef.current.length} size:${blob.size} mime:${actualMime} chosen:${chosenMime}`);
         const dur = (Date.now() - startRef.current) / 1000;
         const finalTranscript = transcriptRef.current.trim() || undefined;
         const reader = new FileReader();
@@ -184,6 +188,7 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
       <div className="flex flex-col gap-1.5 w-full">
         {/* Temporary native audio element for iOS debug — remove after confirming playback works */}
         <audio controls src={savedNote.audioDataUrl} style={{ width: "100%", height: 40 }} />
+        {debugInfo && <p style={{ fontSize: 10, color: "lime", wordBreak: "break-all" }}>{debugInfo}</p>}
         <div className="flex items-center gap-2 px-3 py-2 te-panel rounded-md w-full">
           <span className="te-label text-white/50 flex-1">{t.voice_saved} · {savedNote.durationS}s</span>
           {transcript && (
