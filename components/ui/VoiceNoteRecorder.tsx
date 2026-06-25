@@ -9,13 +9,14 @@ const MAX_S = 60;
 // Use device native rate — forcing 16 kHz mismatches iOS mic rate, producing silence
 const WAV_SAMPLE_RATE = 0; // placeholder; actual rate read from AudioContext at runtime
 
-// iOS Safari's MediaRecorder writes the MP4 moov atom at the end of the file,
-// making blobs unplayable immediately. Detect iOS to use Web Audio API instead.
-const isIOSSafari = () =>
-  typeof navigator !== "undefined" &&
-  /iPad|iPhone|iPod/.test(navigator.userAgent) &&
-  /Safari/.test(navigator.userAgent) &&
-  !/Chrome|CriOS|FxiOS/.test(navigator.userAgent);
+// All iOS browsers (Safari, Chrome/CriOS, Firefox/FxiOS) use WebKit and share
+// the same MediaRecorder bug: moov atom written at end → blob unplayable.
+// Also catches iPads on iOS 13+ which report as MacIntel with touch support.
+const isIOS = () =>
+  typeof navigator !== "undefined" && (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+  );
 
 function encodeWAV(samples: Float32Array, sampleRate: number): Blob {
   const buf = new ArrayBuffer(44 + samples.length * 2);
@@ -173,7 +174,7 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       startRef.current = Date.now();
 
-      if (isIOSSafari()) {
+      if (isIOS()) {
         // iOS Safari MediaRecorder writes moov atom at end — blob is unplayable.
         // Use Web Audio API + ScriptProcessorNode to collect PCM → encode as WAV.
         // No sampleRate override — iOS mic runs at 44100/48000; forcing 16000 produces silence
