@@ -6,7 +6,8 @@ import { saveVoiceNote, deleteVoiceNote, updateVoiceNote, type VoiceNote } from 
 import { useI18n } from "@/lib/i18n/context";
 
 const MAX_S = 60;
-const WAV_SAMPLE_RATE = 16000; // 16 kHz mono — good enough for voice, ~1.9 MB/min
+// Use device native rate — forcing 16 kHz mismatches iOS mic rate, producing silence
+const WAV_SAMPLE_RATE = 0; // placeholder; actual rate read from AudioContext at runtime
 
 // iOS Safari's MediaRecorder writes the MP4 moov atom at the end of the file,
 // making blobs unplayable immediately. Detect iOS to use Web Audio API instead.
@@ -123,6 +124,7 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
       // iOS path — flush WAV samples
       wavProcRef.current.disconnect();
       wavProcRef.current = null;
+      const sampleRate = wavCtxRef.current?.sampleRate ?? 44100;
       wavCtxRef.current?.close();
       wavCtxRef.current = null;
       const all = wavSamplesRef.current;
@@ -131,7 +133,7 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
       let off = 0;
       for (const a of all) { merged.set(a, off); off += a.length; }
       wavSamplesRef.current = [];
-      finishRecording(encodeWAV(merged, WAV_SAMPLE_RATE), dur);
+      finishRecording(encodeWAV(merged, sampleRate), dur);
     } else {
       mediaRef.current?.stop();
       mediaRef.current = null;
@@ -176,8 +178,9 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
       if (isIOSSafari()) {
         // iOS Safari MediaRecorder writes moov atom at end — blob is unplayable.
         // Use Web Audio API + ScriptProcessorNode to collect PCM → encode as WAV.
+        // No sampleRate override — iOS mic runs at 44100/48000; forcing 16000 produces silence
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const ctx = new ((window as any).AudioContext || (window as any).webkitAudioContext)({ sampleRate: WAV_SAMPLE_RATE });
+        const ctx = new ((window as any).AudioContext || (window as any).webkitAudioContext)();
         wavCtxRef.current = ctx;
         wavSamplesRef.current = [];
         const src = ctx.createMediaStreamSource(stream);
