@@ -98,10 +98,12 @@ export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDele
       map.on("load", () => {
         if (cancelled) return;
 
-        // Remove any attribution/logo controls injected by MapLibre or the tile style.
-        map.getContainer().querySelectorAll(
-          ".maplibregl-ctrl-attrib, .maplibregl-ctrl-logo, .maplibregl-ctrl-bottom-right, .maplibregl-ctrl-bottom-left"
-        ).forEach((el: Element) => { (el as HTMLElement).style.display = "none"; });
+        // Remove attribution/logo controls on idle — "load" fires before logo is injected.
+        map.once("idle", () => {
+          map.getContainer().querySelectorAll(
+            ".maplibregl-ctrl-attrib, .maplibregl-ctrl-logo, .maplibregl-ctrl-bottom-right, .maplibregl-ctrl-bottom-left"
+          ).forEach((el: Element) => el.remove());
+        });
 
         // Add Noise-Planet WMS raster layer, hidden by default.
         // Visibility is controlled by the showNoisePlanet prop via a separate effect.
@@ -533,17 +535,17 @@ export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDele
           <button
             onClick={gpsPin}
             aria-label={t.map_gps_me}
-            className="absolute right-4 z-[1000] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-95"
-            style={{ bottom: "calc(var(--nav-safe, 86px) + 8px)", background: "var(--nc-text)", color: "var(--nc-bg)" }}
+            className="fixed right-4 z-[1000] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-95"
+            style={{ bottom: "calc(52px + env(safe-area-inset-bottom) + 12px)", background: "var(--nc-text)", color: "var(--nc-bg)" }}
           >
             <MapPinPlus className="w-6 h-6" strokeWidth={1.75} />
           </button>
 
           {/* Zoom + locate cluster — above FAB */}
           <div
-            className="absolute right-4 z-[1000] flex flex-col rounded-2xl overflow-hidden shadow-lg"
+            className="fixed right-4 z-[1000] flex flex-col rounded-2xl overflow-hidden shadow-lg"
             style={{
-              bottom: "calc(var(--nav-safe, 86px) + 8px + 56px + 8px)",
+              bottom: "calc(52px + env(safe-area-inset-bottom) + 12px + 56px + 8px)",
               background: "var(--nc-bg-panel)",
               border: "1px solid var(--nc-border-mid)",
               backdropFilter: "blur(8px)",
