@@ -118,7 +118,7 @@ export default function MapPage() {
         onCommunityCategory={setCommunityCategory}
       />
 
-      <div style={{ height: "calc(100dvh - 180px)", minHeight: 400 }}>
+      <div className="flex-1 min-h-0" style={{ minHeight: 400 }}>
         <LeafletMap
           filterCategory={filterCategory}
           filterDb={filterDb}
@@ -134,7 +134,7 @@ export default function MapPage() {
 
       {/* ── Left cluster: analysis + export (contextual, bottom-left) ── */}
       {(pinCount > 0 || hasGpsReports) && (
-        <div className="fixed left-4 z-[1000] flex flex-col gap-2 items-start" style={{ bottom: 100 }}>
+        <div className="fixed z-[1000] flex flex-col gap-2 items-start" style={{ bottom: "calc(env(safe-area-inset-bottom) + 68px)", left: "calc(env(safe-area-inset-left) + 16px)" }}>
 
           {/* Export icon button + overflow submenu */}
           {pinCount > 0 && (
@@ -281,7 +281,7 @@ export default function MapPage() {
         return trendReports.length >= 2 ? (
           <div
             className="absolute left-16 right-16 z-[1000] rounded-xl px-4 py-3"
-            style={{ bottom: 100, background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)", maxWidth: 380 }}
+            style={{ bottom: "calc(env(safe-area-inset-bottom) + 68px)", background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)", maxWidth: 380 }}
           >
             <div className="flex items-center justify-between mb-2">
               <span className="te-label text-white/50 uppercase tracking-wider text-[10px]">
@@ -294,7 +294,7 @@ export default function MapPage() {
         ) : (
           <div
             className="absolute left-16 z-[1000] rounded-xl px-4 py-3"
-            style={{ bottom: 100, background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)" }}
+            style={{ bottom: "calc(env(safe-area-inset-bottom) + 68px)", background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)" }}
           >
             <span className="te-label text-white/30 text-[10px]">Record at least 2 sessions to see a trend.</span>
             <button onClick={() => setShowTrend(false)} className="te-label text-white/30 hover:text-white/70 ml-3 transition-colors"><X className="w-3 h-3" /></button>
@@ -322,7 +322,7 @@ export default function MapPage() {
       {exportError && (
         <div
           className="absolute left-4 z-[1001] px-3 py-2 rounded-lg text-xs text-red-400"
-          style={{ bottom: 212, background: "var(--nc-map-overlay)", border: "1px solid rgba(239,68,68,0.4)" }}
+          style={{ bottom: "calc(env(safe-area-inset-bottom) + 180px)", background: "var(--nc-map-overlay)", border: "1px solid rgba(239,68,68,0.4)" }}
         >
           {exportError}
         </div>
@@ -344,29 +344,28 @@ export default function MapPage() {
         <button
           onClick={mapControls.gpsPin}
           aria-label={t.map_gps_me}
-          className="fixed right-4 z-[1000] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-95"
-          style={{ bottom: 100, background: "var(--nc-text)", color: "var(--nc-bg)" }}
+          className="fixed right-4 z-[1000] w-11 h-11 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95"
+          style={{ bottom: "calc(env(safe-area-inset-bottom) + 68px)", background: "var(--nc-text)", color: "var(--nc-bg)" }}
         >
-          <MapPinPlus className="w-6 h-6" strokeWidth={1.75} />
+          <MapPinPlus className="w-5 h-5" strokeWidth={1.75} />
         </button>
         <div
-          className="fixed right-4 z-[1000] flex flex-col rounded-2xl overflow-hidden shadow-lg"
+          className="fixed right-4 z-[1000] flex flex-col rounded-xl overflow-hidden shadow-lg"
           style={{
-            bottom: 176,
-            background: "var(--nc-bg-panel)",
+            bottom: "calc(env(safe-area-inset-bottom) + 128px)",
+            background: "var(--nc-bg)",
             border: "1px solid var(--nc-border-mid)",
-            backdropFilter: "blur(8px)",
           }}
         >
-          <button onClick={mapControls.zoomIn} aria-label={t.map_zoom_in} className="w-10 h-10 flex items-center justify-center transition-colors active:opacity-50" style={{ color: "var(--nc-text-2)" }}>
+          <button onClick={mapControls.zoomIn} aria-label={t.map_zoom_in} className="w-10 h-10 flex items-center justify-center transition-colors active:opacity-50" style={{ color: "var(--nc-text)" }}>
             <Plus className="w-4 h-4" strokeWidth={2} />
           </button>
-          <div style={{ height: "1px", background: "var(--nc-border)" }} />
-          <button onClick={mapControls.zoomOut} aria-label={t.map_zoom_out} className="w-10 h-10 flex items-center justify-center transition-colors active:opacity-50" style={{ color: "var(--nc-text-2)" }}>
+          <div style={{ height: "1px", background: "var(--nc-border-mid)" }} />
+          <button onClick={mapControls.zoomOut} aria-label={t.map_zoom_out} className="w-10 h-10 flex items-center justify-center transition-colors active:opacity-50" style={{ color: "var(--nc-text)" }}>
             <Minus className="w-4 h-4" strokeWidth={2} />
           </button>
-          <div style={{ height: "1px", background: "var(--nc-border)" }} />
-          <button onClick={mapControls.locateMe} aria-label={t.map_locate_me} className="w-10 h-10 flex items-center justify-center transition-colors active:opacity-50" style={{ color: "var(--nc-text-2)" }}>
+          <div style={{ height: "1px", background: "var(--nc-border-mid)" }} />
+          <button onClick={mapControls.locateMe} aria-label={t.map_locate_me} className="w-10 h-10 flex items-center justify-center transition-colors active:opacity-50" style={{ color: "var(--nc-text)" }}>
             <LocateFixed className="w-4 h-4" strokeWidth={1.75} />
           </button>
         </div>

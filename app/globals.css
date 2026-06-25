@@ -43,7 +43,8 @@
     transition: background 200ms ease, color 200ms ease;
   }
 
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; height: 100dvh; }
+  body { height: 100dvh; }
 }
 
 /* ── Tailwind mono font override ──────────────────────────────────── */
