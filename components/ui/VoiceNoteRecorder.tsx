@@ -140,10 +140,16 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
   const playNote = () => {
     if (!savedNote) return;
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; setIsPlaying(false); return; }
-    const audio = new Audio(savedNote.audioDataUrl);
+    // Convert data URL → blob URL: iOS Safari rejects large audio data URLs
+    const mimeMatch = savedNote.audioDataUrl.match(/data:([^;]+)/);
+    const mime = mimeMatch?.[1] ?? "audio/mp4";
+    const b64 = savedNote.audioDataUrl.split(",")[1];
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const blobUrl = URL.createObjectURL(new Blob([bytes], { type: mime }));
+    const audio = new Audio(blobUrl);
     audioRef.current = audio;
-    audio.onended = () => { audioRef.current = null; if (mountedRef.current) setIsPlaying(false); };
-    audio.play();
+    audio.onended = () => { URL.revokeObjectURL(blobUrl); audioRef.current = null; if (mountedRef.current) setIsPlaying(false); };
+    audio.play().catch((err) => { URL.revokeObjectURL(blobUrl); console.error("[voice]", err); audioRef.current = null; if (mountedRef.current) setIsPlaying(false); });
     setIsPlaying(true);
   };
 

@@ -45,9 +45,15 @@ export default function CarnetDetailPage({ params }: { params: Promise<{ id: str
   const playVoice = (note: VoiceNote) => {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; setPlayingId(null); }
     if (playingId === note.id) return;
-    const audio = new Audio(note.audioDataUrl);
-    audio.onended = () => { audioRef.current = null; setPlayingId(null); };
-    audio.play();
+    // Convert data URL → blob URL: iOS Safari rejects large audio data URLs
+    const mimeMatch = note.audioDataUrl.match(/data:([^;]+)/);
+    const mime = mimeMatch?.[1] ?? "audio/mp4";
+    const b64 = note.audioDataUrl.split(",")[1];
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const blobUrl = URL.createObjectURL(new Blob([bytes], { type: mime }));
+    const audio = new Audio(blobUrl);
+    audio.onended = () => { URL.revokeObjectURL(blobUrl); audioRef.current = null; setPlayingId(null); };
+    audio.play().catch((err) => { URL.revokeObjectURL(blobUrl); console.error("[voice]", err); audioRef.current = null; setPlayingId(null); });
     audioRef.current = audio;
     setPlayingId(note.id);
   };
