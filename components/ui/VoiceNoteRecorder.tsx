@@ -124,7 +124,9 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
         };
         reader.readAsDataURL(blob);
       };
-      mr.start(200);
+      // No timeslice — iOS Safari doesn't reliably fire ondataavailable mid-recording;
+      // all data arrives in a single event when stop() is called.
+      mr.start();
       mediaRef.current = mr;
       startRef.current = Date.now();
       setState("recording");
