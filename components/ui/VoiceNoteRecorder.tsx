@@ -59,7 +59,6 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
   const [elapsed, setElapsed] = useState(0);
   const [savedNote, setSavedNote] = useState<VoiceNote | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [debugInfo, setDebugInfo] = useState("");
   // iOS Safari doesn't support data: URLs as audio src — keep a blob URL for playback
   const [playbackUrl, setPlaybackUrl] = useState<string | null>(null);
   const [liveTranscript, setLiveTranscript] = useState("");
@@ -94,7 +93,6 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
   }, []);
 
   const finishRecording = (blob: Blob, dur: number) => {
-    setDebugInfo(`size:${blob.size} mime:${blob.type}`);
     const url = URL.createObjectURL(blob);
     setPlaybackUrl(url);
     const finalTranscript = transcriptRef.current.trim() || undefined;
@@ -256,9 +254,6 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
     const transcript = savedNote.transcript;
     return (
       <div className="flex flex-col gap-1.5 w-full">
-        {/* Temporary native audio element for iOS debug — remove after confirming playback works */}
-        {playbackUrl && <audio controls src={playbackUrl} style={{ width: "100%", height: 40 }} />}
-        {debugInfo && <p style={{ fontSize: 10, color: "lime", wordBreak: "break-all" }}>{debugInfo}</p>}
         <div className="flex items-center gap-2 px-3 py-2 te-panel rounded-md w-full">
           <span className="te-label text-white/50 flex-1">{t.voice_saved} · {savedNote.durationS}s</span>
           {transcript && (
