@@ -521,70 +521,63 @@ export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDele
         aria-label="Interactive noise map — click to drop a pin"
       />
 
-      {/* Custom map controls */}
+      {/* Navigation controls — zoom + locate (right side, always visible) */}
       {ready && (
-        <div
-          className="absolute bottom-10 right-3 z-[1000] flex flex-col rounded-2xl overflow-hidden shadow-xl"
-          style={{
-            background: "var(--nc-bg-panel)",
-            border: "1px solid var(--nc-border-mid)",
-            backdropFilter: "blur(8px)",
-          }}
-        >
-          <button
-            onClick={() => mapRef.current?.zoomIn()}
-            aria-label={t.map_zoom_in}
-            className="w-11 h-11 flex items-center justify-center transition-colors active:opacity-50"
-            style={{ color: "var(--nc-text-2)" }}
-            onPointerEnter={(e) => (e.currentTarget.style.color = "var(--nc-text)")}
-            onPointerLeave={(e) => (e.currentTarget.style.color = "var(--nc-text-2)")}
-          >
-            <Plus className="w-4 h-4" strokeWidth={2} />
-          </button>
-          <div style={{ height: "1px", background: "var(--nc-border)" }} />
-          <button
-            onClick={() => mapRef.current?.zoomOut()}
-            aria-label={t.map_zoom_out}
-            className="w-11 h-11 flex items-center justify-center transition-colors active:opacity-50"
-            style={{ color: "var(--nc-text-2)" }}
-            onPointerEnter={(e) => (e.currentTarget.style.color = "var(--nc-text)")}
-            onPointerLeave={(e) => (e.currentTarget.style.color = "var(--nc-text-2)")}
-          >
-            <Minus className="w-4 h-4" strokeWidth={2} />
-          </button>
-          <div style={{ height: "1px", background: "var(--nc-border)" }} />
-          <button
-            onClick={locateMe}
-            aria-label={t.map_locate_me}
-            className="w-11 h-11 flex items-center justify-center transition-colors active:opacity-50"
-            style={{ color: "var(--nc-text-2)" }}
-            onPointerEnter={(e) => (e.currentTarget.style.color = "var(--nc-text)")}
-            onPointerLeave={(e) => (e.currentTarget.style.color = "var(--nc-text-2)")}
-          >
-            <LocateFixed className="w-4 h-4" strokeWidth={1.75} />
-          </button>
-          <div style={{ height: "1px", background: "var(--nc-border)" }} />
+        <>
+          {/* FAB — primary action: drop pin at GPS location */}
           <button
             onClick={gpsPin}
             aria-label={t.map_gps_me}
-            title={t.map_gps_me}
-            className="w-11 h-11 flex items-center justify-center transition-colors active:opacity-50"
-            style={{ color: "var(--nc-text-2)" }}
-            onPointerEnter={(e) => (e.currentTarget.style.color = "var(--nc-text)")}
-            onPointerLeave={(e) => (e.currentTarget.style.color = "var(--nc-text-2)")}
+            className="absolute bottom-5 right-4 z-[1000] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-95"
+            style={{ background: "var(--nc-text)", color: "var(--nc-bg)" }}
           >
-            <MapPinPlus className="w-4 h-4" strokeWidth={1.75} />
+            <MapPinPlus className="w-6 h-6" strokeWidth={1.75} />
           </button>
-        </div>
-      )}
 
-      {/* "Tap to drop a pin" hint */}
-      <div
-        className="absolute bottom-8 left-2 z-[1000] px-2.5 py-1 rounded-sm pointer-events-none te-label"
-        style={{ background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)" }}
-      >
-        {t.map_tap_to_drop}
-      </div>
+          {/* Zoom + locate cluster — above FAB */}
+          <div
+            className="absolute bottom-24 right-4 z-[1000] flex flex-col rounded-2xl overflow-hidden shadow-lg"
+            style={{
+              background: "var(--nc-bg-panel)",
+              border: "1px solid var(--nc-border-mid)",
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            <button
+              onClick={() => mapRef.current?.zoomIn()}
+              aria-label={t.map_zoom_in}
+              className="w-10 h-10 flex items-center justify-center transition-colors active:opacity-50"
+              style={{ color: "var(--nc-text-2)" }}
+              onPointerEnter={(e) => (e.currentTarget.style.color = "var(--nc-text)")}
+              onPointerLeave={(e) => (e.currentTarget.style.color = "var(--nc-text-2)")}
+            >
+              <Plus className="w-4 h-4" strokeWidth={2} />
+            </button>
+            <div style={{ height: "1px", background: "var(--nc-border)" }} />
+            <button
+              onClick={() => mapRef.current?.zoomOut()}
+              aria-label={t.map_zoom_out}
+              className="w-10 h-10 flex items-center justify-center transition-colors active:opacity-50"
+              style={{ color: "var(--nc-text-2)" }}
+              onPointerEnter={(e) => (e.currentTarget.style.color = "var(--nc-text)")}
+              onPointerLeave={(e) => (e.currentTarget.style.color = "var(--nc-text-2)")}
+            >
+              <Minus className="w-4 h-4" strokeWidth={2} />
+            </button>
+            <div style={{ height: "1px", background: "var(--nc-border)" }} />
+            <button
+              onClick={locateMe}
+              aria-label={t.map_locate_me}
+              className="w-10 h-10 flex items-center justify-center transition-colors active:opacity-50"
+              style={{ color: "var(--nc-text-2)" }}
+              onPointerEnter={(e) => (e.currentTarget.style.color = "var(--nc-text)")}
+              onPointerLeave={(e) => (e.currentTarget.style.color = "var(--nc-text-2)")}
+            >
+              <LocateFixed className="w-4 h-4" strokeWidth={1.75} />
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

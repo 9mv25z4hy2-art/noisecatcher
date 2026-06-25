@@ -3,7 +3,7 @@
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import dynamic from "next/dynamic";
 import { useState, useCallback, useEffect } from "react";
-import { Clock, HeartPulse, FileText, BarChart2, TrendingUp } from "lucide-react";
+import { Clock, HeartPulse, FileText, BarChart2, TrendingUp, Download, X } from "lucide-react";
 import type { NoiseCategory, NoisePin } from "@/lib/pins";
 import { useI18n } from "@/lib/i18n/context";
 import { loadPins, exportGeoJSON, exportTransect } from "@/lib/pins";
@@ -36,6 +36,8 @@ export default function MapPage() {
   const [showCommunity, setShowCommunity] = useState(false);
   const [communityPins, setCommunityPins] = useState<SharedPin[]>([]);
   const [communityCategory, setCommunityCategory] = useState<NoiseCategory | "all">("all");
+  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   const { t } = useI18n();
   const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
@@ -127,77 +129,138 @@ export default function MapPage() {
         />
       </div>
 
-      {/* Analysis toggles — left side (contextual data controls) */}
+      {/* ── Left cluster: analysis + export (contextual, bottom-left) ── */}
       {(pinCount > 0 || hasGpsReports) && (
-        <div className="absolute left-3 z-[1000] flex flex-col gap-1.5" style={{ bottom: "calc(var(--nav-safe) + 80px)" }}>
+        <div className="absolute left-4 z-[1000] flex flex-col gap-2 items-start" style={{ bottom: "calc(var(--nav-safe) + 8px)" }}>
+
+          {/* Export icon button + overflow submenu */}
           {pinCount > 0 && (
-            <>
+            <div className="relative">
+              {showExportMenu && (
+                <div
+                  className="absolute bottom-12 left-0 flex flex-col overflow-hidden rounded-2xl shadow-xl mb-1"
+                  style={{ background: "var(--nc-bg-raised)", border: "1px solid var(--nc-border-mid)", minWidth: 140 }}
+                >
+                  <button
+                    onClick={() => { handleExport(); setShowExportMenu(false); }}
+                    className="flex items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-white/5"
+                    style={{ fontFamily: "var(--font-display)", fontSize: "11px", letterSpacing: "0.06em", color: "var(--nc-text-2)" }}
+                  >
+                    <Download className="w-3.5 h-3.5 shrink-0" />
+                    GeoJSON
+                  </button>
+                  {pinCount >= 2 && (
+                    <>
+                      <div style={{ height: "1px", background: "var(--nc-border)" }} />
+                      <button
+                        onClick={() => { handleTransectExport(); setShowExportMenu(false); }}
+                        className="flex items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-white/5"
+                        style={{ fontFamily: "var(--font-display)", fontSize: "11px", letterSpacing: "0.06em", color: "var(--nc-text-2)" }}
+                      >
+                        <Download className="w-3.5 h-3.5 shrink-0" />
+                        Transect
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
               <button
-                onClick={() => { setShowTrend((v) => !v); setShowEnforcement(false); setShowWHO(false); setShowTimeline(false); }}
-                aria-label={showTrend ? "Hide Leq trend" : "Show Leq trend chart"}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm transition-colors te-label"
+                onClick={() => setShowExportMenu((v) => !v)}
+                aria-label="Export pins"
+                className="w-10 h-10 flex items-center justify-center rounded-2xl shadow-lg transition-colors"
                 style={{
-                  background: showTrend ? "var(--nc-text)" : "var(--nc-map-overlay)",
-                  color: showTrend ? "var(--nc-bg)" : "var(--nc-text-2)",
-                  border: `1px solid ${showTrend ? "var(--nc-text)" : "var(--nc-border-mid)"}`,
+                  background: showExportMenu ? "var(--nc-text)" : "var(--nc-bg-panel)",
+                  color: showExportMenu ? "var(--nc-bg)" : "var(--nc-text-2)",
+                  border: "1px solid var(--nc-border-mid)",
+                  backdropFilter: "blur(8px)",
                 }}
               >
-                <TrendingUp className="w-3 h-3" />
+                <Download className="w-4 h-4" />
               </button>
-              <button
-                onClick={() => { setShowEnforcement((v) => !v); setShowWHO(false); setShowTimeline(false); }}
-                aria-label={showEnforcement ? "Hide enforcement panel" : "Show enforcement pattern visualizer"}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm transition-colors te-label"
-                style={{
-                  background: showEnforcement ? "var(--nc-text)" : "var(--nc-map-overlay)",
-                  color: showEnforcement ? "var(--nc-bg)" : "var(--nc-text-2)",
-                  border: `1px solid ${showEnforcement ? "var(--nc-text)" : "var(--nc-border-mid)"}`,
-                }}
-              >
-                <BarChart2 className="w-3 h-3" />
-              </button>
-            </>
+            </div>
           )}
-          <button
-            onClick={() => setShowComplaint(true)}
-            aria-label="Generate complaint letter"
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm transition-colors te-label"
-            style={{ background: "var(--nc-map-overlay)", color: "var(--nc-text-2)", border: "1px solid var(--nc-border-mid)" }}
-          >
-            <FileText className="w-3 h-3" />
-          </button>
-          <button
-            onClick={() => { setShowWHO((v) => !v); setShowTimeline(false); }}
-            aria-label={showWHO ? "Hide WHO dashboard" : "Show WHO health risk dashboard"}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm transition-colors te-label"
-            style={{
-              background: showWHO ? "var(--nc-text)" : "var(--nc-map-overlay)",
-              color: showWHO ? "var(--nc-bg)" : "var(--nc-text-2)",
-              border: `1px solid ${showWHO ? "var(--nc-text)" : "var(--nc-border-mid)"}`,
-            }}
-          >
-            <HeartPulse className="w-3 h-3" />
-          </button>
-          {pinCount > 0 && (
+
+          {/* Analysis icon button + expandable panel */}
+          <div className="relative">
+            {showAnalysis && (
+              <div
+                className="absolute bottom-12 left-0 flex flex-col overflow-hidden rounded-2xl shadow-xl mb-1"
+                style={{ background: "var(--nc-bg-raised)", border: "1px solid var(--nc-border-mid)" }}
+              >
+                {pinCount > 0 && (
+                  <>
+                    <button
+                      onClick={() => { setShowTrend((v) => !v); setShowEnforcement(false); setShowWHO(false); setShowTimeline(false); setShowAnalysis(false); }}
+                      className="w-10 h-10 flex items-center justify-center transition-colors hover:bg-white/5"
+                      aria-label="Leq trend"
+                      style={{ color: showTrend ? "rgb(52,211,153)" : "var(--nc-text-2)" }}
+                    >
+                      <TrendingUp className="w-4 h-4" />
+                    </button>
+                    <div style={{ height: "1px", background: "var(--nc-border)" }} />
+                    <button
+                      onClick={() => { setShowEnforcement((v) => !v); setShowWHO(false); setShowTimeline(false); setShowAnalysis(false); }}
+                      className="w-10 h-10 flex items-center justify-center transition-colors hover:bg-white/5"
+                      aria-label="Enforcement pattern"
+                      style={{ color: showEnforcement ? "rgb(52,211,153)" : "var(--nc-text-2)" }}
+                    >
+                      <BarChart2 className="w-4 h-4" />
+                    </button>
+                    <div style={{ height: "1px", background: "var(--nc-border)" }} />
+                  </>
+                )}
+                <button
+                  onClick={() => { setShowComplaint(true); setShowAnalysis(false); }}
+                  className="w-10 h-10 flex items-center justify-center transition-colors hover:bg-white/5"
+                  aria-label="Complaint letter"
+                  style={{ color: "var(--nc-text-2)" }}
+                >
+                  <FileText className="w-4 h-4" />
+                </button>
+                <div style={{ height: "1px", background: "var(--nc-border)" }} />
+                <button
+                  onClick={() => { setShowWHO((v) => !v); setShowTimeline(false); setShowAnalysis(false); }}
+                  className="w-10 h-10 flex items-center justify-center transition-colors hover:bg-white/5"
+                  aria-label="WHO health dashboard"
+                  style={{ color: showWHO ? "rgb(52,211,153)" : "var(--nc-text-2)" }}
+                >
+                  <HeartPulse className="w-4 h-4" />
+                </button>
+                {pinCount > 0 && (
+                  <>
+                    <div style={{ height: "1px", background: "var(--nc-border)" }} />
+                    <button
+                      onClick={() => { setShowTimeline((v) => !v); setShowWHO(false); setShowAnalysis(false); }}
+                      className="w-10 h-10 flex items-center justify-center transition-colors hover:bg-white/5"
+                      aria-label="Pin timeline"
+                      style={{ color: showTimeline ? "rgb(52,211,153)" : "var(--nc-text-2)" }}
+                    >
+                      <Clock className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
             <button
-              onClick={() => { setShowTimeline((v) => !v); setShowWHO(false); }}
-              aria-label={showTimeline ? "Hide timeline" : "Show pin timeline"}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm transition-colors te-label"
+              onClick={() => setShowAnalysis((v) => !v)}
+              aria-label="Analysis tools"
+              aria-pressed={showAnalysis}
+              className="w-10 h-10 flex items-center justify-center rounded-2xl shadow-lg transition-colors"
               style={{
-                background: showTimeline ? "var(--nc-text)" : "var(--nc-map-overlay)",
-                color: showTimeline ? "var(--nc-bg)" : "var(--nc-text-2)",
-                border: `1px solid ${showTimeline ? "var(--nc-text)" : "var(--nc-border-mid)"}`,
+                background: showAnalysis ? "var(--nc-text)" : "var(--nc-bg-panel)",
+                color: showAnalysis ? "var(--nc-bg)" : "var(--nc-text-2)",
+                border: "1px solid var(--nc-border-mid)",
+                backdropFilter: "blur(8px)",
               }}
             >
-              <Clock className="w-3 h-3" />
+              <BarChart2 className="w-4 h-4" />
             </button>
-          )}
+          </div>
         </div>
       )}
 
-      {/* Leq trend panel — filtered to reports near visible pins when GPS data exists */}
+      {/* ── Analysis panels ── */}
       {showTrend && (() => {
-        // Build bbox from currently filtered pins (all have lat/lng)
         const bbox = filteredPins.length > 0 ? {
           minLat: Math.min(...filteredPins.map((p) => p.lat)) - 0.02,
           maxLat: Math.max(...filteredPins.map((p) => p.lat)) + 0.02,
@@ -209,85 +272,54 @@ export default function MapPage() {
               r.lat! >= bbox.minLat && r.lat! <= bbox.maxLat &&
               r.lng! >= bbox.minLng && r.lng! <= bbox.maxLng)
           : [];
-        // Fall back to all reports when no reports have GPS near visible pins
         const trendReports = nearby.length >= 2 ? nearby : allReports;
         const isFiltered = nearby.length >= 2;
 
         return trendReports.length >= 2 ? (
           <div
-            className="absolute left-3 right-3 z-[1000] rounded-xl px-4 py-3"
-            style={{ bottom: "calc(var(--nav-safe) + 80px)", background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)", maxWidth: 420 }}
+            className="absolute left-16 right-16 z-[1000] rounded-xl px-4 py-3"
+            style={{ bottom: "calc(var(--nav-safe) + 8px)", background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)", maxWidth: 380 }}
           >
             <div className="flex items-center justify-between mb-2">
               <span className="te-label text-white/50 uppercase tracking-wider text-[10px]">
                 {isFiltered ? `Leq trend — ${nearby.length} sessions near pins` : "Leq trend — all sessions"}
               </span>
-              <button onClick={() => setShowTrend(false)} className="te-label text-white/30 hover:text-white/70 transition-colors">✕</button>
+              <button onClick={() => setShowTrend(false)} className="te-label text-white/30 hover:text-white/70 transition-colors"><X className="w-3 h-3" /></button>
             </div>
             <LeqChart reports={trendReports} title={t.leq_trend} />
           </div>
         ) : (
           <div
-            className="absolute left-3 z-[1000] rounded-xl px-4 py-3"
-            style={{ bottom: "calc(var(--nav-safe) + 80px)", background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)" }}
+            className="absolute left-16 z-[1000] rounded-xl px-4 py-3"
+            style={{ bottom: "calc(var(--nav-safe) + 8px)", background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)" }}
           >
             <span className="te-label text-white/30 text-[10px]">Record at least 2 sessions to see a trend.</span>
-            <button onClick={() => setShowTrend(false)} className="te-label text-white/30 hover:text-white/70 ml-3 transition-colors">✕</button>
+            <button onClick={() => setShowTrend(false)} className="te-label text-white/30 hover:text-white/70 ml-3 transition-colors"><X className="w-3 h-3" /></button>
           </div>
         );
       })()}
 
-      {/* Enforcement Panel */}
       {showEnforcement && pinCount > 0 && (
         <EnforcementPanel pins={filteredPins} onClose={() => setShowEnforcement(false)} />
       )}
 
-      {/* Complaint Letter */}
       {showComplaint && (
         <ComplaintLetter pins={filteredPins} reports={allReports} onClose={() => setShowComplaint(false)} />
       )}
 
-      {/* WHO Dashboard */}
       {showWHO && (pinCount > 0 || hasGpsReports) && (
         <WHODashboard pins={filteredPins} reports={allReports} onClose={() => setShowWHO(false)} />
       )}
 
-      {/* Timeline panel */}
       {showTimeline && pinCount > 0 && (
-        <TimelinePanel
-          pins={filteredPins}
-          onClose={() => setShowTimeline(false)}
-        />
+        <TimelinePanel pins={filteredPins} onClose={() => setShowTimeline(false)} />
       )}
 
-      {/* Export buttons */}
-      {pinCount > 0 && (
-        <div className="absolute right-3 z-[1000] flex flex-col gap-1.5 items-end" style={{ bottom: "calc(var(--nav-safe) + 8px)" }}>
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm transition-colors te-label"
-            style={{ background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)" }}
-          >
-            ↓ Export GeoJSON
-          </button>
-          {pinCount >= 2 && (
-            <button
-              onClick={handleTransectExport}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm transition-colors te-label"
-              style={{ background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)" }}
-              title="Export pins as a route transect (LineString + Points)"
-            >
-              {t.export_transect}
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Export error */}
+      {/* Export error toast */}
       {exportError && (
         <div
-          className="absolute right-3 z-[1001] px-3 py-2 rounded-sm text-xs text-red-400"
-          style={{ bottom: "calc(var(--nav-safe) + 64px)", background: "var(--nc-map-overlay)", border: "1px solid rgba(239,68,68,0.4)" }}
+          className="absolute left-4 z-[1001] px-3 py-2 rounded-lg text-xs text-red-400"
+          style={{ bottom: "calc(var(--nav-safe) + 112px)", background: "var(--nc-map-overlay)", border: "1px solid rgba(239,68,68,0.4)" }}
         >
           {exportError}
         </div>
