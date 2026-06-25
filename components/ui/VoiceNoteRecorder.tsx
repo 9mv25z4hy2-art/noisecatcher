@@ -6,6 +6,33 @@ import { saveVoiceNote, deleteVoiceNote, updateVoiceNote, type VoiceNote } from 
 import { useI18n } from "@/lib/i18n/context";
 
 const MAX_S = 60;
+const WAV_SAMPLE_RATE = 16000; // 16 kHz mono — good enough for voice, ~1.9 MB/min
+
+// iOS Safari's MediaRecorder writes the MP4 moov atom at the end of the file,
+// making blobs unplayable immediately. Detect iOS to use Web Audio API instead.
+const isIOSSafari = () =>
+  typeof navigator !== "undefined" &&
+  /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+  /Safari/.test(navigator.userAgent) &&
+  !/Chrome|CriOS|FxiOS/.test(navigator.userAgent);
+
+function encodeWAV(samples: Float32Array, sampleRate: number): Blob {
+  const buf = new ArrayBuffer(44 + samples.length * 2);
+  const v = new DataView(buf);
+  const str = (o: number, s: string) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  str(0, "RIFF"); v.setUint32(4, 36 + samples.length * 2, true);
+  str(8, "WAVE"); str(12, "fmt "); v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, sampleRate, true); v.setUint32(28, sampleRate * 2, true);
+  v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  str(36, "data"); v.setUint32(40, samples.length * 2, true);
+  let o = 44;
+  for (let i = 0; i < samples.length; i++) {
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    v.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7fff, true); o += 2;
+  }
+  return new Blob([buf], { type: "audio/wav" });
+}
 
 // Web Speech API — not available on iOS Safari or Firefox.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,12 +71,20 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
   const mountedRef = useRef(true);
   const recognitionRef = useRef<SR | null>(null);
   const transcriptRef = useRef("");
+  // Web Audio API path (iOS Safari) — ScriptProcessorNode collects PCM samples
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const wavCtxRef = useRef<any>(null);
+  const wavSamplesRef = useRef<Float32Array[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const wavProcRef = useRef<any>(null);
 
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
       mediaRef.current?.stop();
+      wavProcRef.current?.disconnect();
+      wavCtxRef.current?.close();
       if (timerRef.current) clearInterval(timerRef.current);
       audioRef.current?.pause();
       recognitionRef.current?.stop();
@@ -57,11 +92,50 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
     };
   }, []);
 
+  const finishRecording = (blob: Blob, dur: number) => {
+    setDebugInfo(`size:${blob.size} mime:${blob.type}`);
+    const url = URL.createObjectURL(blob);
+    setPlaybackUrl(url);
+    const finalTranscript = transcriptRef.current.trim() || undefined;
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      if (!mountedRef.current) return;
+      const note = await saveVoiceNote({
+        audioDataUrl: reader.result as string,
+        durationS: Math.round(dur),
+        attachedTo, attachedType, carnetId,
+        transcript: finalTranscript,
+      });
+      if (!mountedRef.current) return;
+      setSavedNote(note);
+      setState("saved");
+      onSaved?.(note);
+    };
+    reader.readAsDataURL(blob);
+  };
+
   const stopRecording = () => {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
     recognitionRef.current?.stop();
-    mediaRef.current?.stop();
-    mediaRef.current = null;
+    const dur = (Date.now() - startRef.current) / 1000;
+
+    if (wavProcRef.current) {
+      // iOS path — flush WAV samples
+      wavProcRef.current.disconnect();
+      wavProcRef.current = null;
+      wavCtxRef.current?.close();
+      wavCtxRef.current = null;
+      const all = wavSamplesRef.current;
+      const total = all.reduce((n, a) => n + a.length, 0);
+      const merged = new Float32Array(total);
+      let off = 0;
+      for (const a of all) { merged.set(a, off); off += a.length; }
+      wavSamplesRef.current = [];
+      finishRecording(encodeWAV(merged, WAV_SAMPLE_RATE), dur);
+    } else {
+      mediaRef.current?.stop();
+      mediaRef.current = null;
+    }
   };
 
   const startRecording = async () => {
@@ -97,46 +171,41 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      // Let the browser pick its own format — forcing mimeType on iOS Safari
-      // produces undecodable output even when isTypeSupported returns true.
-      const mr = new MediaRecorder(stream);
-      const chosenMime = mr.mimeType || "";
-      chunksRef.current = [];
-      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
-      mr.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
-        if (!mountedRef.current) return;
-        const actualMime = mr.mimeType || chosenMime || "audio/mp4";
-        const blob = new Blob(chunksRef.current, { type: actualMime });
-        setDebugInfo(`chunks:${chunksRef.current.length} size:${blob.size} mime:${actualMime}`);
-        // Create blob URL immediately — iOS Safari cannot play data: URLs for audio
-        const url = URL.createObjectURL(blob);
-        setPlaybackUrl(url);
-        const dur = (Date.now() - startRef.current) / 1000;
-        const finalTranscript = transcriptRef.current.trim() || undefined;
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          if (!mountedRef.current) return;
-          const note = await saveVoiceNote({
-            audioDataUrl: reader.result as string,
-            durationS: Math.round(dur),
-            attachedTo,
-            attachedType,
-            carnetId,
-            transcript: finalTranscript,
-          });
-          if (!mountedRef.current) return;
-          setSavedNote(note);
-          setState("saved");
-          onSaved?.(note);
-        };
-        reader.readAsDataURL(blob);
-      };
-      // No timeslice — iOS Safari doesn't reliably fire ondataavailable mid-recording;
-      // all data arrives in a single event when stop() is called.
-      mr.start();
-      mediaRef.current = mr;
       startRef.current = Date.now();
+
+      if (isIOSSafari()) {
+        // iOS Safari MediaRecorder writes moov atom at end — blob is unplayable.
+        // Use Web Audio API + ScriptProcessorNode to collect PCM → encode as WAV.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const ctx = new ((window as any).AudioContext || (window as any).webkitAudioContext)({ sampleRate: WAV_SAMPLE_RATE });
+        wavCtxRef.current = ctx;
+        wavSamplesRef.current = [];
+        const src = ctx.createMediaStreamSource(stream);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const proc = ctx.createScriptProcessor(4096, 1, 1);
+        proc.onaudioprocess = (e: AudioProcessingEvent) => {
+          if (!mountedRef.current) return;
+          wavSamplesRef.current.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+        };
+        src.connect(proc);
+        proc.connect(ctx.destination);
+        wavProcRef.current = proc;
+        // Stop stream tracks when WAV path finishes (done in stopRecording)
+        stream.getTracks().forEach((t) => { t.addEventListener("ended", () => t.stop()); });
+      } else {
+        // MediaRecorder path for Chrome/Firefox/Android
+        const mr = new MediaRecorder(stream);
+        chunksRef.current = [];
+        mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+        mr.onstop = () => {
+          stream.getTracks().forEach((t) => t.stop());
+          if (!mountedRef.current) return;
+          const blob = new Blob(chunksRef.current, { type: mr.mimeType || "audio/webm" });
+          finishRecording(blob, (Date.now() - startRef.current) / 1000);
+        };
+        mr.start();
+        mediaRef.current = mr;
+      }
       setState("recording");
       setElapsed(0);
       timerRef.current = setInterval(() => {
