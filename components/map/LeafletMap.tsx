@@ -533,16 +533,17 @@ export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDele
           <button
             onClick={gpsPin}
             aria-label={t.map_gps_me}
-            className="absolute bottom-5 right-4 z-[1000] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-95"
-            style={{ background: "var(--nc-text)", color: "var(--nc-bg)" }}
+            className="absolute right-4 z-[1000] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-95"
+            style={{ bottom: "calc(var(--nav-safe, 86px) + 8px)", background: "var(--nc-text)", color: "var(--nc-bg)" }}
           >
             <MapPinPlus className="w-6 h-6" strokeWidth={1.75} />
           </button>
 
           {/* Zoom + locate cluster — above FAB */}
           <div
-            className="absolute bottom-24 right-4 z-[1000] flex flex-col rounded-2xl overflow-hidden shadow-lg"
+            className="absolute right-4 z-[1000] flex flex-col rounded-2xl overflow-hidden shadow-lg"
             style={{
+              bottom: "calc(var(--nav-safe, 86px) + 8px + 56px + 8px)",
               background: "var(--nc-bg-panel)",
               border: "1px solid var(--nc-border-mid)",
               backdropFilter: "blur(8px)",
