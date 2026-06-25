@@ -127,9 +127,9 @@ export default function MapPage() {
         />
       </div>
 
-      {/* Timeline + WHO toggle buttons */}
+      {/* Analysis toggles — left side (contextual data controls) */}
       {(pinCount > 0 || hasGpsReports) && (
-        <div className="absolute right-3 z-[1000] flex flex-col gap-1.5" style={{ bottom: "calc(var(--nav-safe) + 80px)" }}>
+        <div className="absolute left-3 z-[1000] flex flex-col gap-1.5" style={{ bottom: "calc(var(--nav-safe) + 80px)" }}>
           {pinCount > 0 && (
             <>
               <button
