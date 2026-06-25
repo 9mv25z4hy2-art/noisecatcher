@@ -1,4 +1,4 @@
-// Noisecatcher Service Worker v10
+// Noisecatcher Service Worker v11
 // Offline-first caching:
 //   • Shell pages        — network-first, cache fallback
 //   • /_next/static/**   — cache-first forever (content-addressed by hash)
@@ -10,7 +10,7 @@
 // DEPLOY CHECKLIST: bump VERSION on every deploy that changes shell assets,
 // routes, or this file. Old caches keyed on previous VERSION are purged in
 // the 'activate' handler. Forgetting to bump means users stay on stale HTML.
-const VERSION   = 'v10';
+const VERSION   = 'v11';
 const SHELL     = `nc-shell-${VERSION}`;
 const STATIC    = `nc-static-${VERSION}`;
 const TILES     = `nc-tiles-${VERSION}`;
