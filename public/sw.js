@@ -28,13 +28,13 @@ self.addEventListener('message', (e) => {
 
 // ── Install ──────────────────────────────────────────────────────────
 self.addEventListener('install', (e) => {
-  // Chain skipWaiting inside waitUntil so activation only happens after the
-  // shell cache is fully populated. If addAll fails, the SW install fails
-  // cleanly instead of activating with an empty cache.
+  // Cache pages individually — addAll is all-or-nothing; one dynamic page
+  // returning an unexpected status kills the whole install and leaves the
+  // SW permanently unactivated with an empty cache.
   e.waitUntil(
-    caches.open(SHELL)
-      .then((c) => c.addAll(SHELL_PAGES))
-      .then(() => self.skipWaiting())
+    caches.open(SHELL).then((c) =>
+      Promise.allSettled(SHELL_PAGES.map((url) => c.add(url).catch(() => {})))
+    ).then(() => self.skipWaiting())
   );
 });
 
