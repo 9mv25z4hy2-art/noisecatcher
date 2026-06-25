@@ -263,3 +263,8 @@ html.light main .border-red-800\/50 { border-color: rgba(185,28,28,0.4) !importa
 .maplibregl-ctrl-bottom-right {
   display: none !important;
 }
+
+/* Bottom-nav height — used by map controls rendered at page level */
+:root {
+  --nc-nav-bottom: calc(52px + env(safe-area-inset-bottom));
+}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Plus, Minus, LocateFixed, MapPinPlus } from "lucide-react";
 import type { NoisePin, NoiseCategory, PinStatus } from "@/lib/pins";
 import { loadPins, deletePin, pinColor, getCategoryMeta, TIME_OF_DAY_LABELS } from "@/lib/pins";
 import { getThreshold } from "@/lib/thresholds";
@@ -42,6 +41,13 @@ function applyLocaleToStyle(map: any, locale: string) {
   }
 }
 
+export interface MapControls {
+  zoomIn: () => void;
+  zoomOut: () => void;
+  locateMe: () => void;
+  gpsPin: () => void;
+}
+
 interface Props {
   filterCategory: NoiseCategory | "all";
   filterDb: number;
@@ -51,6 +57,7 @@ interface Props {
   densityMode: boolean;
   showNoisePlanet: boolean;
   communityPins: import("@/lib/sync").SharedPin[];
+  onMapControls?: (controls: MapControls) => void;
 }
 
 // We store the resolved maplibre-gl module so the pins effect can create
@@ -58,7 +65,7 @@ interface Props {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ML = any;
 
-export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDeleted, refreshKey, densityMode, showNoisePlanet, communityPins }: Props) {
+export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDeleted, refreshKey, densityMode, showNoisePlanet, communityPins, onMapControls }: Props) {
   const { t, locale } = useI18n();
   const containerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -519,6 +526,16 @@ export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDele
     );
   }, [onAddPin]);
 
+  useEffect(() => {
+    if (!ready) return;
+    onMapControls?.({
+      zoomIn:   () => mapRef.current?.zoomIn(),
+      zoomOut:  () => mapRef.current?.zoomOut(),
+      locateMe,
+      gpsPin,
+    });
+  }, [ready, onMapControls, locateMe, gpsPin]);
+
   return (
     <div className="relative w-full h-full">
       <div
@@ -528,64 +545,6 @@ export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDele
         aria-label="Interactive noise map — click to drop a pin"
       />
 
-      {/* Navigation controls — zoom + locate (right side, always visible) */}
-      {ready && (
-        <>
-          {/* FAB — primary action: drop pin at GPS location */}
-          <button
-            onClick={gpsPin}
-            aria-label={t.map_gps_me}
-            className="fixed right-4 z-[1000] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-95"
-            style={{ bottom: "calc(52px + env(safe-area-inset-bottom) + 12px)", background: "var(--nc-text)", color: "var(--nc-bg)" }}
-          >
-            <MapPinPlus className="w-6 h-6" strokeWidth={1.75} />
-          </button>
-
-          {/* Zoom + locate cluster — above FAB */}
-          <div
-            className="fixed right-4 z-[1000] flex flex-col rounded-2xl overflow-hidden shadow-lg"
-            style={{
-              bottom: "calc(52px + env(safe-area-inset-bottom) + 12px + 56px + 8px)",
-              background: "var(--nc-bg-panel)",
-              border: "1px solid var(--nc-border-mid)",
-              backdropFilter: "blur(8px)",
-            }}
-          >
-            <button
-              onClick={() => mapRef.current?.zoomIn()}
-              aria-label={t.map_zoom_in}
-              className="w-10 h-10 flex items-center justify-center transition-colors active:opacity-50"
-              style={{ color: "var(--nc-text-2)" }}
-              onPointerEnter={(e) => (e.currentTarget.style.color = "var(--nc-text)")}
-              onPointerLeave={(e) => (e.currentTarget.style.color = "var(--nc-text-2)")}
-            >
-              <Plus className="w-4 h-4" strokeWidth={2} />
-            </button>
-            <div style={{ height: "1px", background: "var(--nc-border)" }} />
-            <button
-              onClick={() => mapRef.current?.zoomOut()}
-              aria-label={t.map_zoom_out}
-              className="w-10 h-10 flex items-center justify-center transition-colors active:opacity-50"
-              style={{ color: "var(--nc-text-2)" }}
-              onPointerEnter={(e) => (e.currentTarget.style.color = "var(--nc-text)")}
-              onPointerLeave={(e) => (e.currentTarget.style.color = "var(--nc-text-2)")}
-            >
-              <Minus className="w-4 h-4" strokeWidth={2} />
-            </button>
-            <div style={{ height: "1px", background: "var(--nc-border)" }} />
-            <button
-              onClick={locateMe}
-              aria-label={t.map_locate_me}
-              className="w-10 h-10 flex items-center justify-center transition-colors active:opacity-50"
-              style={{ color: "var(--nc-text-2)" }}
-              onPointerEnter={(e) => (e.currentTarget.style.color = "var(--nc-text)")}
-              onPointerLeave={(e) => (e.currentTarget.style.color = "var(--nc-text-2)")}
-            >
-              <LocateFixed className="w-4 h-4" strokeWidth={1.75} />
-            </button>
-          </div>
-        </>
-      )}
     </div>
   );
 }

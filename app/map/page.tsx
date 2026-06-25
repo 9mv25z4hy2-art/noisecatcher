@@ -3,8 +3,9 @@
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import dynamic from "next/dynamic";
 import { useState, useCallback, useEffect } from "react";
-import { Clock, HeartPulse, FileText, BarChart2, TrendingUp, Download, X } from "lucide-react";
+import { Clock, HeartPulse, FileText, BarChart2, TrendingUp, Download, X, Plus, Minus, LocateFixed, MapPinPlus } from "lucide-react";
 import type { NoiseCategory, NoisePin } from "@/lib/pins";
+import type { MapControls } from "@/components/map/LeafletMap";
 import { useI18n } from "@/lib/i18n/context";
 import { loadPins, exportGeoJSON, exportTransect } from "@/lib/pins";
 import { loadReports, type NoiseReport } from "@/lib/db";
@@ -38,6 +39,7 @@ export default function MapPage() {
   const [communityCategory, setCommunityCategory] = useState<NoiseCategory | "all">("all");
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [mapControls, setMapControls] = useState<MapControls | null>(null);
 
   const { t } = useI18n();
   const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
@@ -126,6 +128,7 @@ export default function MapPage() {
           densityMode={densityMode}
           showNoisePlanet={showNoisePlanet}
           communityPins={communityCategory === "all" ? communityPins : communityPins.filter((p) => p.category === communityCategory)}
+          onMapControls={setMapControls}
         />
       </div>
 
@@ -334,6 +337,41 @@ export default function MapPage() {
         />
       )}
     </div>
+
+    {/* ── Right controls: FAB + zoom cluster — fixed at viewport level, outside MapLibre DOM ── */}
+    {mapControls && (
+      <>
+        <button
+          onClick={mapControls.gpsPin}
+          aria-label={t.map_gps_me}
+          className="fixed right-4 z-[1000] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-95"
+          style={{ bottom: "calc(var(--nc-nav-bottom) + 12px)", background: "var(--nc-text)", color: "var(--nc-bg)" }}
+        >
+          <MapPinPlus className="w-6 h-6" strokeWidth={1.75} />
+        </button>
+        <div
+          className="fixed right-4 z-[1000] flex flex-col rounded-2xl overflow-hidden shadow-lg"
+          style={{
+            bottom: "calc(var(--nc-nav-bottom) + 12px + 56px + 8px)",
+            background: "var(--nc-bg-panel)",
+            border: "1px solid var(--nc-border-mid)",
+            backdropFilter: "blur(8px)",
+          }}
+        >
+          <button onClick={mapControls.zoomIn} aria-label={t.map_zoom_in} className="w-10 h-10 flex items-center justify-center transition-colors active:opacity-50" style={{ color: "var(--nc-text-2)" }}>
+            <Plus className="w-4 h-4" strokeWidth={2} />
+          </button>
+          <div style={{ height: "1px", background: "var(--nc-border)" }} />
+          <button onClick={mapControls.zoomOut} aria-label={t.map_zoom_out} className="w-10 h-10 flex items-center justify-center transition-colors active:opacity-50" style={{ color: "var(--nc-text-2)" }}>
+            <Minus className="w-4 h-4" strokeWidth={2} />
+          </button>
+          <div style={{ height: "1px", background: "var(--nc-border)" }} />
+          <button onClick={mapControls.locateMe} aria-label={t.map_locate_me} className="w-10 h-10 flex items-center justify-center transition-colors active:opacity-50" style={{ color: "var(--nc-text-2)" }}>
+            <LocateFixed className="w-4 h-4" strokeWidth={1.75} />
+          </button>
+        </div>
+      </>
+    )}
     </ErrorBoundary>
   );
 }
