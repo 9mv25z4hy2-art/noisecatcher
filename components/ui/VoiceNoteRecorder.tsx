@@ -32,6 +32,8 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
   const [savedNote, setSavedNote] = useState<VoiceNote | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [debugInfo, setDebugInfo] = useState("");
+  // iOS Safari doesn't support data: URLs as audio src — keep a blob URL for playback
+  const [playbackUrl, setPlaybackUrl] = useState<string | null>(null);
   const [liveTranscript, setLiveTranscript] = useState("");
   const [showTranscript, setShowTranscript] = useState(false);
   const mediaRef = useRef<MediaRecorder | null>(null);
@@ -51,6 +53,7 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
       if (timerRef.current) clearInterval(timerRef.current);
       audioRef.current?.pause();
       recognitionRef.current?.stop();
+      setPlaybackUrl((url) => { if (url) URL.revokeObjectURL(url); return null; });
     };
   }, []);
 
@@ -106,8 +109,10 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
         if (!mountedRef.current) return;
         const actualMime = mr.mimeType || chosenMime || "audio/mp4";
         const blob = new Blob(chunksRef.current, { type: actualMime });
-        // DEBUG — remove after confirming recording works on iOS
-        setDebugInfo(`chunks:${chunksRef.current.length} size:${blob.size} mime:${actualMime} chosen:${chosenMime}`);
+        setDebugInfo(`chunks:${chunksRef.current.length} size:${blob.size} mime:${actualMime}`);
+        // Create blob URL immediately — iOS Safari cannot play data: URLs for audio
+        const url = URL.createObjectURL(blob);
+        setPlaybackUrl(url);
         const dur = (Date.now() - startRef.current) / 1000;
         const finalTranscript = transcriptRef.current.trim() || undefined;
         const reader = new FileReader();
@@ -148,18 +153,12 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
   };
 
   const playNote = () => {
-    if (!savedNote) return;
+    if (!playbackUrl) return;
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; setIsPlaying(false); return; }
-    // Convert data URL → blob URL: iOS Safari rejects large audio data URLs
-    const mimeMatch = savedNote.audioDataUrl.match(/data:([^;]+)/);
-    const mime = mimeMatch?.[1] ?? "audio/mp4";
-    const b64 = savedNote.audioDataUrl.split(",")[1];
-    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-    const blobUrl = URL.createObjectURL(new Blob([bytes], { type: mime }));
-    const audio = new Audio(blobUrl);
+    const audio = new Audio(playbackUrl);
     audioRef.current = audio;
-    audio.onended = () => { URL.revokeObjectURL(blobUrl); audioRef.current = null; if (mountedRef.current) setIsPlaying(false); };
-    audio.play().catch((err) => { URL.revokeObjectURL(blobUrl); console.error("[voice]", err); audioRef.current = null; if (mountedRef.current) setIsPlaying(false); });
+    audio.onended = () => { audioRef.current = null; if (mountedRef.current) setIsPlaying(false); };
+    audio.play().catch((err) => { console.error("[voice]", err); audioRef.current = null; if (mountedRef.current) setIsPlaying(false); });
     setIsPlaying(true);
   };
 
@@ -187,7 +186,7 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
     return (
       <div className="flex flex-col gap-1.5 w-full">
         {/* Temporary native audio element for iOS debug — remove after confirming playback works */}
-        <audio controls src={savedNote.audioDataUrl} style={{ width: "100%", height: 40 }} />
+        {playbackUrl && <audio controls src={playbackUrl} style={{ width: "100%", height: 40 }} />}
         {debugInfo && <p style={{ fontSize: 10, color: "lime", wordBreak: "break-all" }}>{debugInfo}</p>}
         <div className="flex items-center gap-2 px-3 py-2 te-panel rounded-md w-full">
           <span className="te-label text-white/50 flex-1">{t.voice_saved} · {savedNote.durationS}s</span>
