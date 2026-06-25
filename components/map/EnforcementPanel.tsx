@@ -43,8 +43,8 @@ export default function EnforcementPanel({ pins, onClose }: Props) {
 
   return (
     <div
-      className="absolute bottom-10 left-2 z-[1001] rounded-xl overflow-hidden w-72"
-      style={{ background: "var(--nc-bg-panel)", border: "1px solid var(--nc-border-mid)", backdropFilter: "blur(8px)" }}
+      className="absolute left-2 z-[1001] rounded-xl overflow-hidden w-72"
+      style={{ bottom: "calc(var(--nav-safe, 60px) + 8px)", background: "var(--nc-bg-panel)", border: "1px solid var(--nc-border-mid)", backdropFilter: "blur(8px)" }}
     >
       <div className="flex items-center justify-between px-3 py-1.5" style={{ borderBottom: "1px solid var(--nc-border)" }}>
         <span className="text-[10px] uppercase tracking-widest" style={{ color: "var(--nc-text-3)" }}>

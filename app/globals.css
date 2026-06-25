@@ -257,3 +257,9 @@ html.light main .border-red-800\/50 { border-color: rgba(185,28,28,0.4) !importa
     outline-color: Highlight; /* OS-native highlight colour */
   }
 }
+
+/* Hide MapLibre attribution control — we include attribution in the app footer */
+.maplibregl-ctrl-attrib,
+.maplibregl-ctrl-logo {
+  display: none !important;
+}
