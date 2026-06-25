@@ -524,9 +524,8 @@ export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDele
       {/* Custom map controls */}
       {ready && (
         <div
-          className="absolute right-3 z-[1000] flex flex-col rounded-2xl overflow-hidden shadow-xl"
+          className="absolute bottom-10 right-3 z-[1000] flex flex-col rounded-2xl overflow-hidden shadow-xl"
           style={{
-            bottom: "calc(var(--nav-safe, 52px) + 8px)",
             background: "var(--nc-bg-panel)",
             border: "1px solid var(--nc-border-mid)",
             backdropFilter: "blur(8px)",
@@ -581,8 +580,8 @@ export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDele
 
       {/* "Tap to drop a pin" hint */}
       <div
-        className="absolute left-2 z-[1000] px-2.5 py-1 rounded-sm pointer-events-none te-label"
-        style={{ bottom: "calc(var(--nav-safe, 52px) + 8px)", background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)" }}
+        className="absolute bottom-8 left-2 z-[1000] px-2.5 py-1 rounded-sm pointer-events-none te-label"
+        style={{ background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)" }}
       >
         {t.map_tap_to_drop}
       </div>

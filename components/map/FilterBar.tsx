@@ -64,7 +64,7 @@ export default function FilterBar({
       </div>
 
       {/* ── Second row: dB filter + density toggle ── */}
-      <div className="flex items-center gap-2 pointer-events-auto">
+      <div className="flex items-center gap-2 pointer-events-auto overflow-x-auto scrollbar-hide">
         <div
           className="flex items-center gap-2 px-3 py-1.5 rounded-sm flex-1 max-w-xs"
           style={{ background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)" }}
