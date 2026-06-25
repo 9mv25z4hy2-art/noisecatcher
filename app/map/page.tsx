@@ -134,7 +134,7 @@ export default function MapPage() {
 
       {/* ── Left cluster: analysis + export (contextual, bottom-left) ── */}
       {(pinCount > 0 || hasGpsReports) && (
-        <div className="absolute left-4 z-[1000] flex flex-col gap-2 items-start" style={{ bottom: "calc(var(--nav-safe) + 8px)" }}>
+        <div className="fixed left-4 z-[1000] flex flex-col gap-2 items-start" style={{ bottom: 100 }}>
 
           {/* Export icon button + overflow submenu */}
           {pinCount > 0 && (
@@ -281,7 +281,7 @@ export default function MapPage() {
         return trendReports.length >= 2 ? (
           <div
             className="absolute left-16 right-16 z-[1000] rounded-xl px-4 py-3"
-            style={{ bottom: "calc(var(--nav-safe) + 8px)", background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)", maxWidth: 380 }}
+            style={{ bottom: 100, background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)", maxWidth: 380 }}
           >
             <div className="flex items-center justify-between mb-2">
               <span className="te-label text-white/50 uppercase tracking-wider text-[10px]">
@@ -294,7 +294,7 @@ export default function MapPage() {
         ) : (
           <div
             className="absolute left-16 z-[1000] rounded-xl px-4 py-3"
-            style={{ bottom: "calc(var(--nav-safe) + 8px)", background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)" }}
+            style={{ bottom: 100, background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)" }}
           >
             <span className="te-label text-white/30 text-[10px]">Record at least 2 sessions to see a trend.</span>
             <button onClick={() => setShowTrend(false)} className="te-label text-white/30 hover:text-white/70 ml-3 transition-colors"><X className="w-3 h-3" /></button>
@@ -322,7 +322,7 @@ export default function MapPage() {
       {exportError && (
         <div
           className="absolute left-4 z-[1001] px-3 py-2 rounded-lg text-xs text-red-400"
-          style={{ bottom: "calc(var(--nav-safe) + 112px)", background: "var(--nc-map-overlay)", border: "1px solid rgba(239,68,68,0.4)" }}
+          style={{ bottom: 212, background: "var(--nc-map-overlay)", border: "1px solid rgba(239,68,68,0.4)" }}
         >
           {exportError}
         </div>
@@ -345,14 +345,14 @@ export default function MapPage() {
           onClick={mapControls.gpsPin}
           aria-label={t.map_gps_me}
           className="fixed right-4 z-[1000] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-95"
-          style={{ bottom: "calc(var(--nc-nav-bottom) + 12px)", background: "var(--nc-text)", color: "var(--nc-bg)" }}
+          style={{ bottom: 100, background: "var(--nc-text)", color: "var(--nc-bg)" }}
         >
           <MapPinPlus className="w-6 h-6" strokeWidth={1.75} />
         </button>
         <div
           className="fixed right-4 z-[1000] flex flex-col rounded-2xl overflow-hidden shadow-lg"
           style={{
-            bottom: "calc(var(--nc-nav-bottom) + 12px + 56px + 8px)",
+            bottom: 176,
             background: "var(--nc-bg-panel)",
             border: "1px solid var(--nc-border-mid)",
             backdropFilter: "blur(8px)",
