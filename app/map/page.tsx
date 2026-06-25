@@ -118,7 +118,7 @@ export default function MapPage() {
         onCommunityCategory={setCommunityCategory}
       />
 
-      <div className="flex-1 min-h-0" style={{ minHeight: 400 }}>
+      <div style={{ height: "calc(100dvh - 180px)", minHeight: 400 }}>
         <LeafletMap
           filterCategory={filterCategory}
           filterDb={filterDb}
