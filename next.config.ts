@@ -23,6 +23,8 @@ const nextConfig: NextConfig = {
               // wss://gun.eco and wss://gun.o8.is (apex) must be listed explicitly — wss://*.gun.eco only matches subdomains
               "connect-src 'self' https://*.openfreemap.org https://*.openstreetmap.org https://nominatim.openstreetmap.org https://gun.eco https://gun.o8.is wss://gun.eco wss://*.gun.eco wss://gun.o8.is wss://*.o8.is https://tfhub.dev https://storage.googleapis.com",
               "worker-src 'self' blob:",
+              // blob: required for voice note playback (WAV blob URLs created via URL.createObjectURL)
+              "media-src 'self' blob:",
               "frame-ancestors 'none'",
             ].join("; "),
           },
