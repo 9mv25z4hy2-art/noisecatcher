@@ -98,6 +98,11 @@ export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDele
       map.on("load", () => {
         if (cancelled) return;
 
+        // Remove any attribution/logo controls injected by MapLibre or the tile style.
+        map.getContainer().querySelectorAll(
+          ".maplibregl-ctrl-attrib, .maplibregl-ctrl-logo, .maplibregl-ctrl-bottom-right, .maplibregl-ctrl-bottom-left"
+        ).forEach((el: Element) => { (el as HTMLElement).style.display = "none"; });
+
         // Add Noise-Planet WMS raster layer, hidden by default.
         // Visibility is controlled by the showNoisePlanet prop via a separate effect.
         map.addSource("noise-planet", buildNoisePlanetRasterSource());
