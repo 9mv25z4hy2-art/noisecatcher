@@ -93,13 +93,17 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mr = new MediaRecorder(stream);
+      // Pick first supported MIME type — iOS Safari returns "" from mr.mimeType
+      // even though it records valid audio/mp4, causing playback to fail.
+      const PREFERRED = ["audio/mp4", "audio/aac", "audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"];
+      const chosenMime = PREFERRED.find((t) => MediaRecorder.isTypeSupported(t)) ?? "";
+      const mr = chosenMime ? new MediaRecorder(stream, { mimeType: chosenMime }) : new MediaRecorder(stream);
       chunksRef.current = [];
       mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
       mr.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
         if (!mountedRef.current) return;
-        const blob = new Blob(chunksRef.current, { type: mr.mimeType || "audio/webm" });
+        const blob = new Blob(chunksRef.current, { type: mr.mimeType || chosenMime || "audio/mp4" });
         const dur = (Date.now() - startRef.current) / 1000;
         const finalTranscript = transcriptRef.current.trim() || undefined;
         const reader = new FileReader();
