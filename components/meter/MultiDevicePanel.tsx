@@ -13,6 +13,7 @@ import {
   type SessionPeer,
   type TDOAResult,
 } from "@/lib/session";
+import { getConnectionState, onConnectionChange, type GunConnectionState } from "@/lib/gun";
 
 interface Props {
   /** Current live dB reading from the meter — null when meter is off */
@@ -47,6 +48,9 @@ export default function MultiDevicePanel({ currentDba, gps, peakDb, peakAt }: Pr
   const codeRef = useRef(code);
   // Stable device ID — set once, never changes
   const [myId] = useState(() => getDeviceId());
+
+  const [relayState, setRelayState] = useState<GunConnectionState>(() => getConnectionState());
+  useEffect(() => { const unsub = onConnectionChange(setRelayState); return () => { unsub(); }; }, []);
 
   // Broadcast current reading when in a session
   useEffect(() => {
@@ -126,14 +130,30 @@ export default function MultiDevicePanel({ currentDba, gps, peakDb, peakAt }: Pr
             Multi-device session
           </span>
         </div>
-        {mode !== "idle" && (
-          <div className="flex items-center gap-1.5">
-            <Users className="w-3 h-3" style={{ color: "var(--nc-text-3)" }} />
-            <span className="text-xs tabular-nums" style={{ color: "var(--nc-text-3)" }}>
-              {allActive.length}
+        <div className="flex items-center gap-3">
+          {/* P2P relay status */}
+          <div className="flex items-center gap-1.5" title={`Relay: ${relayState}`}>
+            <span
+              className="w-1.5 h-1.5 rounded-full"
+              style={{
+                background: relayState === "connected" ? "rgb(52,211,153)"
+                  : relayState === "connecting" ? "rgb(251,191,36)"
+                  : "rgb(156,163,175)",
+              }}
+            />
+            <span className="text-[10px] uppercase tracking-wider" style={{ color: "var(--nc-text-3)" }}>
+              {relayState === "connected" ? "relay" : relayState === "connecting" ? "…" : "offline"}
             </span>
           </div>
-        )}
+          {mode !== "idle" && (
+            <div className="flex items-center gap-1.5">
+              <Users className="w-3 h-3" style={{ color: "var(--nc-text-3)" }} />
+              <span className="text-xs tabular-nums" style={{ color: "var(--nc-text-3)" }}>
+                {allActive.length}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="px-4 py-3 flex flex-col gap-3">

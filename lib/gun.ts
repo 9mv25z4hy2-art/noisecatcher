@@ -29,9 +29,9 @@ let connectionState: GunConnectionState = "connecting";
 const stateListeners = new Set<(s: GunConnectionState) => void>();
 
 export function getConnectionState() { return connectionState; }
-export function onConnectionChange(fn: (s: GunConnectionState) => void) {
+export function onConnectionChange(fn: (s: GunConnectionState) => void): () => void {
   stateListeners.add(fn);
-  return () => stateListeners.delete(fn);
+  return () => { stateListeners.delete(fn); };
 }
 function setConnectionState(s: GunConnectionState) {
   if (s === connectionState) return;
