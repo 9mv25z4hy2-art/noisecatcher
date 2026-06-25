@@ -92,7 +92,7 @@ export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDele
         style: MAP_STYLE_URL,
         center: [0, 20],
         zoom: 2,
-        attributionControl: { compact: true },
+        attributionControl: false,
       });
 
       map.on("load", () => {
