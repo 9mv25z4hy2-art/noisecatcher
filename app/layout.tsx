@@ -35,6 +35,8 @@ export const viewport: Viewport = {
   themeColor: "#0a0a0a",
   width: "device-width",
   initialScale: 1,
+  // Required for env(safe-area-inset-*) to return non-zero values on iOS
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({
@@ -74,7 +76,8 @@ export default async function RootLayout({
           <PinsProvider>
             <FirstRunWelcome />
             <Nav />
-            <main id="nc-main" className="flex-1 flex flex-col">{children}</main>
+            {/* pb accounts for fixed bottom nav (52px) + iOS home indicator */}
+            <main id="nc-main" className="flex-1 flex flex-col" style={{ paddingBottom: "calc(52px + env(safe-area-inset-bottom))" }}>{children}</main>
             <InstallBanner />
           </PinsProvider>
         </I18nProvider>

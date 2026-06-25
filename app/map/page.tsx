@@ -95,7 +95,7 @@ export default function MapPage() {
 
   return (
     <ErrorBoundary>
-    <div className="relative flex-1 flex flex-col" style={{ minHeight: "calc(100vh - 120px)" }}>
+    <div className="relative flex-1 flex flex-col" style={{ minHeight: "calc(100vh - 120px)", ["--nav-safe" as string]: "calc(52px + env(safe-area-inset-bottom))" }}>
 
       <FilterBar
         category={filterCategory}
@@ -129,7 +129,7 @@ export default function MapPage() {
 
       {/* Timeline + WHO toggle buttons */}
       {(pinCount > 0 || hasGpsReports) && (
-        <div className="absolute bottom-24 right-3 z-[1000] flex flex-col gap-1.5">
+        <div className="absolute right-3 z-[1000] flex flex-col gap-1.5" style={{ bottom: "calc(var(--nav-safe) + 80px)" }}>
           {pinCount > 0 && (
             <>
               <button
@@ -215,8 +215,8 @@ export default function MapPage() {
 
         return trendReports.length >= 2 ? (
           <div
-            className="absolute bottom-24 left-3 right-3 z-[1000] rounded-xl px-4 py-3"
-            style={{ background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)", maxWidth: 420 }}
+            className="absolute left-3 right-3 z-[1000] rounded-xl px-4 py-3"
+            style={{ bottom: "calc(var(--nav-safe) + 80px)", background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)", maxWidth: 420 }}
           >
             <div className="flex items-center justify-between mb-2">
               <span className="te-label text-white/50 uppercase tracking-wider text-[10px]">
@@ -228,8 +228,8 @@ export default function MapPage() {
           </div>
         ) : (
           <div
-            className="absolute bottom-24 left-3 z-[1000] rounded-xl px-4 py-3"
-            style={{ background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)" }}
+            className="absolute left-3 z-[1000] rounded-xl px-4 py-3"
+            style={{ bottom: "calc(var(--nav-safe) + 80px)", background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)" }}
           >
             <span className="te-label text-white/30 text-[10px]">Record at least 2 sessions to see a trend.</span>
             <button onClick={() => setShowTrend(false)} className="te-label text-white/30 hover:text-white/70 ml-3 transition-colors">✕</button>
@@ -262,7 +262,7 @@ export default function MapPage() {
 
       {/* Export buttons */}
       {pinCount > 0 && (
-        <div className="absolute bottom-10 right-3 z-[1000] flex flex-col gap-1.5 items-end">
+        <div className="absolute right-3 z-[1000] flex flex-col gap-1.5 items-end" style={{ bottom: "calc(var(--nav-safe) + 8px)" }}>
           <button
             onClick={handleExport}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm transition-colors te-label"
@@ -286,8 +286,8 @@ export default function MapPage() {
       {/* Export error */}
       {exportError && (
         <div
-          className="absolute bottom-20 right-3 z-[1001] px-3 py-2 rounded-sm text-xs text-red-400"
-          style={{ background: "var(--nc-map-overlay)", border: "1px solid rgba(239,68,68,0.4)" }}
+          className="absolute right-3 z-[1001] px-3 py-2 rounded-sm text-xs text-red-400"
+          style={{ bottom: "calc(var(--nav-safe) + 64px)", background: "var(--nc-map-overlay)", border: "1px solid rgba(239,68,68,0.4)" }}
         >
           {exportError}
         </div>

@@ -114,7 +114,7 @@ export default function Nav() {
       {/* ── Top bar ── */}
       <header
         className="px-4 py-3 flex items-center justify-between sticky top-0 z-40 backdrop-blur border-b"
-        style={{ background: "var(--nc-nav-bg)", borderColor: "var(--nc-border)" }}
+        style={{ background: "var(--nc-nav-bg)", borderColor: "var(--nc-border)", paddingTop: "calc(0.75rem + env(safe-area-inset-top))" }}
       >
         <Link href="/" className="flex items-center gap-2.5">
           <div
@@ -172,7 +172,7 @@ export default function Nav() {
       {/* ── Mobile bottom nav ── */}
       <nav
         className="sm:hidden fixed bottom-0 inset-x-0 z-40 backdrop-blur border-t flex"
-        style={{ background: "var(--nc-nav-bg)", borderColor: "var(--nc-border)" }}
+        style={{ background: "var(--nc-nav-bg)", borderColor: "var(--nc-border)", paddingBottom: "env(safe-area-inset-bottom)" }}
         aria-label="Mobile navigation"
       >
         {links.filter((l) => !l.mobileHide).map(({ href, label, icon: Icon }) => {
@@ -182,12 +182,12 @@ export default function Nav() {
               key={href}
               href={href}
               aria-current={active ? "page" : undefined}
-              className="flex-1 flex flex-col items-center gap-1 py-3 transition-colors"
+              className="flex-1 flex flex-col items-center gap-1 py-3 min-h-[52px] justify-center transition-colors"
               style={{ color: active ? "var(--nc-text)" : "var(--nc-text-3)" }}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="w-5 h-5" />
               <span
-                className="text-[8px] tracking-widest uppercase"
+                className="text-[9px] tracking-widest uppercase"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 {mounted ? label : ""}
@@ -197,7 +197,6 @@ export default function Nav() {
         })}
       </nav>
 
-      <div className="sm:hidden h-16" aria-hidden />
     </>
   );
 }
