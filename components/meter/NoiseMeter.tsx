@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mic, MicOff, AlertTriangle, Info, MapPin, SlidersHorizontal, Headphones, FileText, BellRing, BellOff, Wand2, Lock, Unlock, Share2, Check } from "lucide-react";
-import { WAKE_MP4, WAKE_WEBM } from "@/lib/wakeVideo";
+import { WAKE_MP4 } from "@/lib/wakeVideo";
 import { NoiseMeter as NoiseMeterEngine, listAudioInputDevices, type ExtendedMeterReading } from "@/lib/audio/meter";
 import { getThreshold, THRESHOLDS } from "@/lib/thresholds";
 import { ABECEDAIRE } from "@/lib/abecedaire";
@@ -112,6 +112,7 @@ export default function NoiseMeter() {
   // ── Wake Lock ────────────────────────────────────────────────────────────────
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
   const wakeVideoRef = useRef<HTMLVideoElement | null>(null);
+  const isActiveRef = useRef(false);
   const [wakeLockActive, setWakeLockActive] = useState(false);
 
   // ── Expert mode ──────────────────────────────────────────────────────────────
@@ -148,21 +149,15 @@ export default function NoiseMeter() {
   // Re-acquire Wake Lock when page becomes visible again (e.g. user returns from another app)
   useEffect(() => {
     async function onVisibility() {
-      if (document.visibilityState === "visible" && isActive) {
-        try {
-          wakeVideoRef.current?.play();
-          setWakeLockActive(true);
-        } catch { /* non-fatal */ }
-        if ("wakeLock" in navigator) {
-          try {
-            wakeLockRef.current = await navigator.wakeLock.request("screen");
-          } catch { /* non-fatal */ }
-        }
+      if (document.visibilityState === "visible" && isActiveRef.current) {
+        wakeVideoRef.current?.play().catch(() => {});
+        // acquireWakeLock is scoped to startMeter; the release-listener loop
+        // handles re-acquisition automatically after visibility restores.
       }
     }
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
-  }, [isActive]);
+  }, []);
 
   // Enumerate audio input devices after mount. Labels are only available after
   // the user has granted microphone permission (first measurement start).
@@ -318,27 +313,22 @@ export default function NoiseMeter() {
     // NoSleep.js ships this same video but bypasses it on iOS 16.4+ (where
     // navigator.wakeLock exists), falling back to the Wake Lock API that is
     // unreliable in PWA standalone mode. We drive the video directly instead.
+    // Video: use src= directly (not <source> elements) so the mp4 data URI is
+    // available synchronously — no format-probe round-trip that would lose the
+    // iOS user-gesture context before play() is called.
+    isActiveRef.current = true;
     try {
       if (!wakeVideoRef.current) {
         const v = document.createElement("video");
         v.setAttribute("playsinline", "");
         v.muted = true;
         v.loop = true;
-        const webmSrc = document.createElement("source");
-        webmSrc.src = WAKE_WEBM;
-        webmSrc.type = "video/webm";
-        const mp4Src = document.createElement("source");
-        mp4Src.src = WAKE_MP4;
-        mp4Src.type = "video/mp4";
-        v.appendChild(webmSrc);
-        v.appendChild(mp4Src);
-        // Must be in the DOM — iOS Safari won't play a detached video element
+        v.src = WAKE_MP4;
         v.style.cssText = "position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;";
         document.body.appendChild(v);
         wakeVideoRef.current = v;
       }
-      wakeVideoRef.current.play().catch(() => {});
-      setWakeLockActive(true);
+      wakeVideoRef.current.play().then(() => setWakeLockActive(true)).catch(() => {});
     } catch { /* non-fatal */ }
 
     setError(null);
@@ -348,6 +338,7 @@ export default function NoiseMeter() {
     setDiscardedCount(0);
     setBearing(null);
     prevLevelRef.current = null;
+    // eslint-disable-next-line react-hooks/purity
     sessionStartRef.current = Date.now();
     setSessionDurationS(0);
     peakClipBlobRef.current = null;
@@ -391,12 +382,19 @@ export default function NoiseMeter() {
     if (devs.length > 0) setAudioDevices(devs);
     setIsActive(true);
 
-    // Wake Lock API as secondary reinforcement (Chrome Android, Firefox).
-    if ("wakeLock" in navigator) {
+    // Wake Lock API with re-acquire on release.
+    // iOS releases the sentinel when it starts the dim sequence. Re-requesting
+    // in the release handler fires before the screen actually turns off,
+    // interrupting the dim. Combined with the video loop above for maximum coverage.
+    async function acquireWakeLock() {
+      if (!isActiveRef.current || !("wakeLock" in navigator)) return;
       try {
-        wakeLockRef.current = await navigator.wakeLock.request("screen");
+        const sentinel = await navigator.wakeLock.request("screen");
+        wakeLockRef.current = sentinel;
+        sentinel.addEventListener("release", () => { acquireWakeLock(); }, { once: true });
       } catch { /* non-fatal */ }
     }
+    acquireWakeLock();
 
     // Passive GPS watch for multi-device TDOA — low accuracy, minimal battery impact
     if (typeof navigator !== "undefined" && navigator.geolocation) {
@@ -409,6 +407,7 @@ export default function NoiseMeter() {
   };
 
   const stopMeter = () => {
+    isActiveRef.current = false; // stops the Wake Lock re-acquire loop
     if (gpsWatchRef.current !== null) {
       navigator.geolocation.clearWatch(gpsWatchRef.current);
       gpsWatchRef.current = null;
