@@ -312,6 +312,15 @@ export default function NoiseMeter() {
   }, []);
 
   const startMeter = async () => {
+    // NoSleep must be enabled synchronously before any await — iOS expires the
+    // user-gesture context after the first async operation (getUserMedia, etc.),
+    // and video.play() inside NoSleep will be silently blocked if called later.
+    try {
+      if (!noSleepRef.current) noSleepRef.current = new NoSleep();
+      noSleepRef.current.enable();
+      setWakeLockActive(true);
+    } catch { /* non-fatal */ }
+
     setError(null);
     setPeak(0);
     setPeakAt(null);
@@ -362,13 +371,7 @@ export default function NoiseMeter() {
     if (devs.length > 0) setAudioDevices(devs);
     setIsActive(true);
 
-    // Screen wake — NoSleep.js as primary (works on iOS via silent video loop),
-    // Wake Lock API as secondary for browsers that support it natively.
-    try {
-      if (!noSleepRef.current) noSleepRef.current = new NoSleep();
-      await noSleepRef.current.enable();
-      setWakeLockActive(true);
-    } catch { /* non-fatal */ }
+    // Wake Lock API as secondary reinforcement (Chrome Android, Firefox).
     if ("wakeLock" in navigator) {
       try {
         wakeLockRef.current = await navigator.wakeLock.request("screen");
@@ -1034,6 +1037,38 @@ export default function NoiseMeter() {
         </div>
       </div>
 
+      {/* ── Start / Stop + Stop & Report + Calibrate ── */}
+      <div className="flex items-center gap-3 w-full">
+        <button
+          onClick={isActive ? stopMeter : startMeter}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-md font-semibold text-sm tracking-wide transition-all ${
+            isActive
+              ? "bg-white/8 hover:bg-white/12 text-white border border-white/10"
+              : "bg-white text-gray-900 hover:bg-gray-100"
+          }`}
+        >
+          {isActive
+            ? <><MicOff className="w-4 h-4" />{t.meter_stop}</>
+            : <><Mic className="w-4 h-4" />{t.meter_start}</>}
+        </button>
+        {isActive && sessionReadings.length >= 5 && (
+          <button
+            onClick={stopAndReport}
+            className="flex items-center justify-center gap-2 px-4 py-3 rounded-md font-semibold text-sm tracking-wide transition-all bg-white/8 hover:bg-white/12 text-white border border-white/10"
+          >
+            <FileText className="w-4 h-4" />
+            {t.meter_stop_report}
+          </button>
+        )}
+        <button
+          onClick={() => setShowCalibration(true)}
+          aria-label="Calibrate microphone"
+          className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md border border-white/8 text-white/30 hover:text-white/70 hover:border-white/20 transition-colors"
+        >
+          <SlidersHorizontal className="w-4 h-4" />
+        </button>
+      </div>
+
       {/* ── Notebook assignment (shown before starting) ── */}
       {!isActive && carnets.length > 0 && (
         <div className="w-full flex flex-col gap-1">
@@ -1064,6 +1099,9 @@ export default function NoiseMeter() {
           <span style={{ color: "var(--nc-text-3)" }}>Screen lock will be suppressed when measurement starts (Wake Lock API).</span>
         </div>
       )}
+
+      {/* ── Audio recorder ── */}
+      <AudioRecorderPanel />
 
       {/* ── Continuous threshold alert ── */}
       <div className="w-full te-panel rounded-md overflow-hidden">
@@ -1208,38 +1246,6 @@ export default function NoiseMeter() {
         </div>
       )}
 
-      {/* ── Start / Stop + Stop & Report + Calibrate ── */}
-      <div className="flex items-center gap-3 w-full">
-        <button
-          onClick={isActive ? stopMeter : startMeter}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-md font-semibold text-sm tracking-wide transition-all ${
-            isActive
-              ? "bg-white/8 hover:bg-white/12 text-white border border-white/10"
-              : "bg-white text-gray-900 hover:bg-gray-100"
-          }`}
-        >
-          {isActive
-            ? <><MicOff className="w-4 h-4" />{t.meter_stop}</>
-            : <><Mic className="w-4 h-4" />{t.meter_start}</>}
-        </button>
-        {isActive && sessionReadings.length >= 5 && (
-          <button
-            onClick={stopAndReport}
-            className="flex items-center justify-center gap-2 px-4 py-3 rounded-md font-semibold text-sm tracking-wide transition-all bg-white/8 hover:bg-white/12 text-white border border-white/10"
-          >
-            <FileText className="w-4 h-4" />
-            {t.meter_stop_report}
-          </button>
-        )}
-        <button
-          onClick={() => setShowCalibration(true)}
-          aria-label="Calibrate microphone"
-          className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md border border-white/8 text-white/30 hover:text-white/70 hover:border-white/20 transition-colors"
-        >
-          <SlidersHorizontal className="w-4 h-4" />
-        </button>
-      </div>
-
       {/* ── Error ── */}
       {error && (
         <div className="flex items-start gap-2 bg-red-950/60 border border-red-800/50 rounded-md p-4 text-sm text-red-300 w-full">
@@ -1282,9 +1288,6 @@ export default function NoiseMeter() {
           </div>
         );
       })()}
-
-      {/* ── Audio recorder ── */}
-      <AudioRecorderPanel />
 
       {/* ── Multi-device shared session ── */}
       <MultiDevicePanel
