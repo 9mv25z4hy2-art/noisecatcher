@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mic, MicOff, AlertTriangle, Info, MapPin, SlidersHorizontal, Headphones, FileText, BellRing, BellOff, Wand2, Lock, Unlock, Share2, Check } from "lucide-react";
-import NoSleep from "nosleep.js";
+import { WAKE_MP4, WAKE_WEBM } from "@/lib/wakeVideo";
 import { NoiseMeter as NoiseMeterEngine, listAudioInputDevices, type ExtendedMeterReading } from "@/lib/audio/meter";
 import { getThreshold, THRESHOLDS } from "@/lib/thresholds";
 import { ABECEDAIRE } from "@/lib/abecedaire";
@@ -111,7 +111,7 @@ export default function NoiseMeter() {
 
   // ── Wake Lock ────────────────────────────────────────────────────────────────
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
-  const noSleepRef = useRef<NoSleep | null>(null);
+  const wakeVideoRef = useRef<HTMLVideoElement | null>(null);
   const [wakeLockActive, setWakeLockActive] = useState(false);
 
   // ── Expert mode ──────────────────────────────────────────────────────────────
@@ -150,7 +150,7 @@ export default function NoiseMeter() {
     async function onVisibility() {
       if (document.visibilityState === "visible" && isActive) {
         try {
-          await noSleepRef.current?.enable();
+          wakeVideoRef.current?.play();
           setWakeLockActive(true);
         } catch { /* non-fatal */ }
         if ("wakeLock" in navigator) {
@@ -312,12 +312,29 @@ export default function NoiseMeter() {
   }, []);
 
   const startMeter = async () => {
-    // NoSleep must be enabled synchronously before any await — iOS expires the
-    // user-gesture context after the first async operation (getUserMedia, etc.),
-    // and video.play() inside NoSleep will be silently blocked if called later.
+    // Play a silent looping video to suppress iOS screen auto-lock.
+    // Must run synchronously inside the user-gesture handler — iOS Safari
+    // expires the gesture context after the first await, blocking video.play().
+    // NoSleep.js ships this same video but bypasses it on iOS 16.4+ (where
+    // navigator.wakeLock exists), falling back to the Wake Lock API that is
+    // unreliable in PWA standalone mode. We drive the video directly instead.
     try {
-      if (!noSleepRef.current) noSleepRef.current = new NoSleep();
-      noSleepRef.current.enable();
+      if (!wakeVideoRef.current) {
+        const v = document.createElement("video");
+        v.setAttribute("playsinline", "");
+        v.muted = true;
+        v.loop = true;
+        const webmSrc = document.createElement("source");
+        webmSrc.src = WAKE_WEBM;
+        webmSrc.type = "video/webm";
+        const mp4Src = document.createElement("source");
+        mp4Src.src = WAKE_MP4;
+        mp4Src.type = "video/mp4";
+        v.appendChild(webmSrc);
+        v.appendChild(mp4Src);
+        wakeVideoRef.current = v;
+      }
+      wakeVideoRef.current.play();
       setWakeLockActive(true);
     } catch { /* non-fatal */ }
 
@@ -393,7 +410,7 @@ export default function NoiseMeter() {
       navigator.geolocation.clearWatch(gpsWatchRef.current);
       gpsWatchRef.current = null;
     }
-    noSleepRef.current?.disable();
+    try { wakeVideoRef.current?.pause(); } catch { /* non-fatal */ }
     wakeLockRef.current?.release().catch(() => {});
     wakeLockRef.current = null;
     setWakeLockActive(false);
@@ -1093,10 +1110,10 @@ export default function NoiseMeter() {
           <span style={{ color: "var(--nc-text-2)" }}>Screen lock suppressed — screen will stay on during measurement.</span>
         </div>
       )}
-      {!wakeLockActive && !isActive && "wakeLock" in navigator && (
+      {!wakeLockActive && !isActive && (
         <div className="w-full flex items-center gap-2 px-3 py-1.5 rounded te-label text-[10px]" style={{ background: "var(--nc-bg-raised)", border: "1px solid var(--nc-border)" }}>
           <Unlock className="w-3 h-3 shrink-0" style={{ color: "var(--nc-text-3)" }} />
-          <span style={{ color: "var(--nc-text-3)" }}>Screen lock will be suppressed when measurement starts (Wake Lock API).</span>
+          <span style={{ color: "var(--nc-text-3)" }}>Screen lock will be suppressed when measurement starts.</span>
         </div>
       )}
 
