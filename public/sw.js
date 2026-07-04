@@ -10,13 +10,13 @@
 // DEPLOY CHECKLIST: bump VERSION on every deploy that changes shell assets,
 // routes, or this file. Old caches keyed on previous VERSION are purged in
 // the 'activate' handler. Forgetting to bump means users stay on stale HTML.
-const VERSION   = 'v11';
+const VERSION   = 'v30';
 const SHELL     = `nc-shell-${VERSION}`;
 const STATIC    = `nc-static-${VERSION}`;
 const TILES     = `nc-tiles-${VERSION}`;
 const KEEP      = new Set([SHELL, STATIC, TILES]);
 
-const SHELL_PAGES = ['/', '/meter', '/map', '/abecedaire', '/about', '/act', '/help', '/pamphlet', '/carnets', '/microphones', '/methodology', '/offline'];
+const SHELL_PAGES = ['/', '/meter', '/map', '/abecedaire', '/about', '/act', '/help', '/pamphlet', '/carnets', '/microphones', '/methodology', '/offline', '/teaser.html', '/teaser-ig.html', '/posters.html'];
 const TILE_TTL    = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
 const MAX_TILES   = 500;
 const PRUNE_COUNT = 100; // entries deleted when MAX_TILES is exceeded

@@ -133,8 +133,8 @@ export default function TimelinePanel({ pins, onClose }: Props) {
   if (sorted.length === 0) {
     return (
       <div
-        className="absolute left-2 z-[1001] px-4 py-3 rounded-xl flex items-center gap-3 text-xs"
-        style={{ bottom: "calc(var(--nav-safe, 60px) + 8px)", background: "var(--nc-bg-panel)", border: "1px solid var(--nc-border-mid)", backdropFilter: "blur(8px)" }}
+        className="fixed left-2 z-[1001] px-4 py-3 rounded-xl flex items-center gap-3 text-xs"
+        style={{ bottom: "calc(var(--nc-nav-bottom) + 8px)", background: "var(--nc-bg-panel)", border: "1px solid var(--nc-border-mid)", backdropFilter: "blur(8px)" }}
       >
         <span style={{ color: "var(--nc-text-3)" }}>No pins to display.</span>
         <button onClick={onClose} aria-label="Close timeline" style={{ color: "var(--nc-text-3)" }}><X className="w-3.5 h-3.5" /></button>
@@ -205,8 +205,8 @@ export default function TimelinePanel({ pins, onClose }: Props) {
 
   return (
     <div
-      className="absolute left-2 z-[1001] rounded-xl overflow-hidden"
-      style={{ bottom: "calc(var(--nav-safe, 60px) + 8px)", background: "var(--nc-bg-panel)", border: "1px solid var(--nc-border-mid)", backdropFilter: "blur(8px)" }}
+      className="fixed left-2 z-[1001] rounded-xl overflow-hidden"
+      style={{ bottom: "calc(var(--nc-nav-bottom) + 8px)", background: "var(--nc-bg-panel)", border: "1px solid var(--nc-border-mid)", backdropFilter: "blur(8px)" }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-1.5" style={{ borderBottom: "1px solid var(--nc-border)" }}>

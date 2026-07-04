@@ -119,12 +119,82 @@ export default function ActPage() {
         </p>
       </section>
 
+      {/* ── Scale of the crisis ── */}
+      <section className="flex flex-col gap-4">
+        <h2 className="nc-text font-semibold text-base nc-divider-b pb-2">The scale of the crisis</h2>
+        <p className="text-sm leading-relaxed" style={{ color: "var(--nc-text-2)" }}>
+          In Europe, noise pollution is the <strong className="nc-text">second largest environmental health risk</strong> after air pollution. The European Environment Agency&apos;s 2025 report quantifies the damage for the first time at full scale.
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { stat: "73,000", label: "premature deaths per year in Europe from transport noise (EEA 2025)" },
+            { stat: "1.3 M", label: "DALYs (disability-adjusted life-years) lost annually — up from 1 M in 2011" },
+            { stat: "22,000", label: "new type 2 diabetes cases per year in Europe linked to noise exposure" },
+            { stat: "€95.6 B", label: "estimated annual economic cost of transport noise in Europe (EEA 2025)" },
+          ].map((item) => (
+            <div key={item.stat} className="nc-surface rounded-xl p-4 flex flex-col gap-1">
+              <p className="text-xl font-bold nc-text font-mono">{item.stat}</p>
+              <p className="text-[11px] leading-relaxed" style={{ color: "var(--nc-text-2)" }}>{item.label}</p>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs leading-relaxed" style={{ color: "var(--nc-text-3)" }}>
+          These figures cover Europe only. No equivalent global estimate exists — most cities in Sub-Saharan Africa, South Asia, and Latin America have no peer-reviewed noise monitoring data. Among the cities with documented research: Cairo (85–90 dB average street noise, Egyptian NRC); Ho Chi Minh City (103 dB, UN-cited); São Paulo schools (70.3 dB LAeq weekdays, Nature 2026). The absence of data does not mean the absence of harm.
+        </p>
+        <a
+          href="https://www.eea.europa.eu/publications/environmental-noise-in-europe-2025"
+          target="_blank" rel="noopener noreferrer"
+          className="flex items-center gap-2 text-xs transition-colors"
+          style={{ color: "var(--nc-text-3)" }}
+        >
+          <ExternalLink className="w-3.5 h-3.5" />
+          EEA — Environmental Noise in Europe 2025
+        </a>
+      </section>
+
+      {/* ── Legal instruments ── */}
+      <section className="flex flex-col gap-4">
+        <h2 className="nc-text font-semibold text-base nc-divider-b pb-2">Noise as a human rights issue</h2>
+        <p className="text-sm leading-relaxed" style={{ color: "var(--nc-text-2)" }}>
+          Across jurisdictions, courts and legislatures have established that noise pollution is not merely an inconvenience but a violation of fundamental rights. These instruments give your data legal standing.
+        </p>
+        <div className="flex flex-col gap-3">
+          {[
+            {
+              title: "ECHR Article 8 — Hatton v. UK (2003)",
+              body: "The European Court of Human Rights (Grand Chamber) held that states have positive obligations to protect residents from severe noise under the right to private and family life. Heathrow night flights violated this right. Foundational for noise-based ECHR complaints in all Council of Europe member states.",
+            },
+            {
+              title: "India Supreme Court — Right to life (2005)",
+              body: "Forum for Prevention of Environmental and Sound Pollution v. Union of India (2005) SCC 733 ruled that 'freedom from noise pollution is part of the right to life' under Article 21 of the Indian Constitution — one of the strongest constitutional noise rulings globally, leading to a ban on firecrackers between 10pm and 6am.",
+            },
+            {
+              title: "US Noise Control Act (1972) — defunded 1981",
+              body: "The only comprehensive US federal noise law was gutted by the Reagan administration in 1981. The EPA Office of Noise Abatement and Control has been unfunded for 45 years. Noise regulation in the US is now fragmented across thousands of local ordinances, with weakest enforcement in the most exposed communities.",
+            },
+            {
+              title: "Colombia Law 2450/2025",
+              body: "Latin America's first dedicated national noise law, passed in 2025. Establishes noise limits, monitoring obligations, and enforcement mechanisms — a model for noise legislation in the Global South.",
+            },
+            {
+              title: "Sonic Apartheid — noise as racial geography",
+              body: "Research from the University of Cape Town (Alexandra Downing Watkins) documents how forced relocations in post-apartheid Cape Town (including Blikkiesdorp, cleared before the 2010 World Cup) placed Black and Coloured communities in high-noise industrial zones with no political recourse. US studies (Casey et al. 2017; Collins et al. 2020) document the same pattern nationally. Noise burden follows the lines of racial and economic geography — a structural injustice, not an accident.",
+            },
+          ].map((card) => (
+            <div key={card.title} className="nc-surface rounded-xl p-4 flex flex-col gap-1.5">
+              <p className="nc-text font-semibold text-sm">{card.title}</p>
+              <p className="text-xs leading-relaxed" style={{ color: "var(--nc-text-2)" }}>{card.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ── How to use your data ── */}
       <section className="flex flex-col gap-4">
         <h2 className="nc-text font-semibold text-base nc-divider-b pb-2">How to use your measurements</h2>
         <p className="text-sm leading-relaxed" style={{ color: "var(--nc-text-2)" }}>
           Noisecatcher readings are <strong className="nc-text">indicative</strong>, not legally certified.
-          A smartphone microphone is not a Type 1 or Type 2 sound level meter (IEC 61672). This matters for
+          A smartphone microphone is not a Class 1 or Class 2 sound level meter (IEC 61672-1:2013). This matters for
           how your data can be used.
         </p>
         <div className="flex flex-col gap-3">
@@ -176,6 +246,34 @@ export default function ActPage() {
           <strong className="nc-text">NoiseCapture</strong> (Université Gustave Eiffel),
           the open-source citizen noise sensing platform, so your data can feed directly into community datasets.
         </p>
+
+        {/* ── Dossier + Longitudinal CTA ── */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-2">
+          <Link
+            href="/dossier"
+            className="nc-surface rounded-xl p-4 flex flex-col gap-2 transition-opacity hover:opacity-80"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-base">📄</span>
+              <span className="nc-text font-semibold text-sm">Evidence Dossier</span>
+            </div>
+            <p className="text-xs leading-relaxed" style={{ color: "var(--nc-text-2)" }}>
+              Select pins, compute statistics, add legal context, and generate a print-ready complaint document — ready to file with a council, tribunal, or ECHR submission.
+            </p>
+          </Link>
+          <Link
+            href="/longitudinal"
+            className="nc-surface rounded-xl p-4 flex flex-col gap-2 transition-opacity hover:opacity-80"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-base">📈</span>
+              <span className="nc-text font-semibold text-sm">Longitudinal change</span>
+            </div>
+            <p className="text-xs leading-relaxed" style={{ color: "var(--nc-text-2)" }}>
+              See how sound levels at specific locations have changed over time — the tool for documenting sonic displacement in gentrifying neighbourhoods and post-conflict areas.
+            </p>
+          </Link>
+        </div>
       </section>
 
       {/* ── Methodology link card ── */}

@@ -41,7 +41,7 @@ export const THRESHOLDS: Threshold[] = [
     textColor: "text-yellow-400",
     shortDescription: "Elevated noise — caution with prolonged exposure.",
     healthAlert:
-      "Prolonged exposure above 55 dB(A) is associated with sleep disturbance and cardiovascular stress. The WHO recommends keeping average environmental noise below 53 dB(A) during daytime.",
+      "Prolonged exposure above 55 dB(A) is associated with sleep disturbance and cardiovascular stress. The WHO 2018 guidelines recommend a Lden (day-evening-night weighted annual average) below 53 dB(A) for road traffic noise, and Lnight below 45 dB(A). Lden is not a simple daytime limit — it applies a +5 dB evening penalty (19–23h) and +10 dB night penalty (23–7h).",
     exposure: "Equivalent to a busy office, conversation at close range, or city traffic at a distance.",
     vulnerable:
       "Children in this range may experience disrupted concentration and learning. Sensitive individuals should limit continuous exposure.",
@@ -73,7 +73,7 @@ export const THRESHOLDS: Threshold[] = [
     textColor: "text-red-400",
     shortDescription: "Immediate risk — leave or protect your hearing.",
     healthAlert:
-      "Above 85 dB(A), hearing damage begins with prolonged exposure (NIOSH REL: 8 h limit). At 100 dB(A), safe exposure drops to ~15 minutes. Chronic exposure causes irreversible sensorineural hearing loss, tinnitus, severe cardiovascular strain, and documented psychological trauma. OSHA mandates hearing protection above 85 dB in workplaces. Many people have no such protection in daily life.",
+      "Above 85 dB(A), hearing damage begins with prolonged exposure (NIOSH REL: 8 h limit). At 100 dB(A), safe exposure drops to ~15 minutes (NIOSH 3 dB exchange rate). Chronic exposure causes irreversible sensorineural hearing loss, tinnitus, severe cardiovascular strain, and documented psychological trauma. OSHA's Action Level of 85 dB(A) triggers mandatory hearing conservation programmes; the OSHA Permissible Exposure Limit is 90 dB(A). Many workers in non-regulated environments have no such protection.",
     exposure:
       "Equivalent to a lawnmower, heavy machinery, nightclub interiors, or proximity to traffic infrastructure.",
     vulnerable:
@@ -90,7 +90,7 @@ export const THRESHOLDS: Threshold[] = [
     textColor: "text-violet-400",
     shortDescription: "Acoustic trauma zone — acute hearing damage from a single exposure.",
     healthAlert:
-      "120 dB(A) is the threshold of pain. A single brief exposure above 120 dB(A) can cause acute acoustic trauma — immediate, irreversible sensorineural hearing loss and tinnitus. At 130–140 dB(A) (gunshots, jet engines at close range) the risk of permanent hearing loss is near-certain without protection. Above 150 dB(A), eardrum rupture is possible. There is NO safe exposure duration at this level.",
+      "120 dB(A) marks the lower boundary of the pain zone — individual pain thresholds range from 120 to 140 dB SPL. A single brief exposure above 120 dB(A) can cause acute acoustic trauma: immediate, irreversible sensorineural hearing loss and tinnitus. At 130–140 dB(A) (gunshots, jet engines at close range) the risk of permanent hearing loss is near-certain without protection. Above 150 dB(A), eardrum rupture is possible. There is NO safe exposure duration at this level.",
     exposure:
       "Rock concerts near speakers, ambulance sirens at close range, pneumatic drills (< 1 m), gunshots, jet engine runups. Above 130 dB: explosions, airbag deployment, firearms without hearing protection.",
     vulnerable:

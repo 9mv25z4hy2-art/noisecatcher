@@ -3,6 +3,7 @@ import { IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { cookies } from "next/headers";
 import Nav from "@/components/ui/Nav";
+import LayoutFooter from "@/components/ui/LayoutFooter";
 import ServiceWorkerRegistration from "@/components/ui/ServiceWorkerRegistration";
 import { I18nProvider } from "@/lib/i18n/context";
 import FirstRunWelcome from "@/components/ui/FirstRunWelcome";
@@ -81,15 +82,7 @@ export default async function RootLayout({
             <InstallBanner />
           </PinsProvider>
         </I18nProvider>
-        <footer
-          className="border-t px-4 py-5 text-center"
-          style={{ borderColor: "var(--nc-border)" }}
-        >
-          <p className="te-label leading-relaxed">
-            Noisecatcher — indicative readings only.{" "}
-            <span style={{ color: "var(--nc-text-3)" }}>Not a certified instrument.</span>
-          </p>
-        </footer>
+        <LayoutFooter />
       </body>
     </html>
   );

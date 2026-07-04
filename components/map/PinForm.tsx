@@ -159,24 +159,31 @@ export default function PinForm({ lat: initLat, lng: initLng, defaultDb, onClose
 
   return (
     <div
-      className="fixed inset-0 z-[2000] flex items-end sm:items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-[10001] flex items-end sm:items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
       aria-modal="true"
       aria-labelledby={titleId}
     >
       <div
         ref={dialogRef}
         role="dialog"
-        className="rounded-2xl w-full max-w-sm flex flex-col gap-4 p-5 shadow-2xl max-h-[90vh] overflow-y-auto"
-        style={{ background: "var(--nc-bg-panel)", border: "1px solid var(--nc-border-mid)" }}
+        className="rounded-2xl w-full max-w-sm flex flex-col shadow-2xl"
+        style={{
+          background: "var(--nc-bg-panel)",
+          border: "1px solid var(--nc-border-mid)",
+          maxHeight: "min(90dvh, calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 32px))",
+        }}
       >
 
-        {/* Header */}
-        <div className="flex items-center justify-between">
+        {/* Header — sticky so X is always reachable */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 flex-shrink-0">
           <h2 id={titleId} className="font-semibold text-base nc-text">{t.pin_form_title}</h2>
-          <button onClick={onClose} aria-label="Close form" style={{ color: "var(--nc-text-3)" }} className="hover:nc-text transition-colors">
+          <button onClick={onClose} aria-label="Close form" style={{ color: "var(--nc-text-3)" }} className="hover:nc-text transition-colors p-1 -mr-1">
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Scrollable body */}
+        <div className="flex flex-col gap-4 px-5 pb-5 overflow-y-auto flex-1 min-h-0" style={{ overscrollBehavior: "contain", WebkitOverflowScrolling: "touch" } as React.CSSProperties}>
 
         {/* Mode toggle */}
         <div className="flex gap-1.5">
@@ -521,9 +528,14 @@ export default function PinForm({ lat: initLat, lng: initLng, defaultDb, onClose
               </label>
             )}
             {sharePublicly && (
-              <p className="text-[10px] leading-relaxed" style={{ color: "var(--nc-text-3)" }}>
-                No account. No server. Your pin propagates directly to other peers. Photo and notebook ID are never shared.
-              </p>
+              <div className="flex flex-col gap-1.5">
+                <p className="text-[10px] leading-relaxed" style={{ color: "var(--nc-text-3)" }}>
+                  No account. No server. Photo and notebook ID are never shared.
+                </p>
+                <p className="text-[10px] leading-relaxed" style={{ color: "#fb923c" }}>
+                  ⚠ P2P sharing requires an active relay. Without one, pins are stored locally only and will not propagate to other users. Contact the developer to enable community relay access.
+                </p>
+              </div>
             )}
           </div>
 
@@ -537,6 +549,7 @@ export default function PinForm({ lat: initLat, lng: initLng, defaultDb, onClose
             {t.pin_drop_btn}
           </button>
         </form>
+        </div>{/* /scrollable body */}
       </div>
     </div>
   );

@@ -254,6 +254,10 @@ export class NoiseMeter {
   getAnalyser(): AnalyserNode | null {
     return this.analyser;
   }
+
+  getStream(): MediaStream | null {
+    return this.stream;
+  }
 }
 
 /**

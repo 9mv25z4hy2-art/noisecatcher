@@ -50,7 +50,7 @@ export default function AboutPage() {
           <strong className="text-gray-300">phone noise pollution</strong> — with 90+ specific
           subcategories for precise documentation.
           The <em className="text-white">Abécédaire</em> now contains{" "}
-          <strong className="text-gray-300">88 entries</strong> spanning acoustics, health, law,
+          <strong className="text-gray-300">107 entries</strong> spanning acoustics, health, law,
           environment, and critical theory, including sonic warfare, acoustic racism, psychoacoustic
           annoyance, machine listening, federated noise sensing, and political violence acoustics.
         </p>
@@ -152,9 +152,13 @@ export default function AboutPage() {
         <p className="text-gray-400 text-sm leading-relaxed">
           Sound is not only a pollutant — it is a weapon. Police and security forces
           routinely deploy acoustic devices against protesters, journalists, and bystanders:
-          LRADs (sound cannons), flash-bang grenades at 170–180 dB, rubber bullet launchers,
-          water cannons, and sustained low-altitude helicopter operations. Each of these
-          causes documented permanent hearing damage, vestibular injury, and psychological trauma.
+          LRADs (Long Range Acoustic Devices, maximum specification 162 dB SPL at source — LRAD 2000X manufacturer spec), flash-bang grenades,
+          rubber bullet launchers, water cannons, and sustained low-altitude helicopter operations.
+          Each causes documented permanent hearing damage, vestibular injury, and psychological trauma.
+          Juliette Volcler&apos;s Extremely Loud (The New Press, 2013) documents the global deployment of these
+          technologies — and names the political logic that makes them possible: the &quot;non-lethal&quot; classification
+          is a terminological sleight of hand that shifts accountability and enables harm without legal consequence.
+          The ear has no eyelid. It cannot close.
         </p>
         <p className="text-gray-400 text-sm leading-relaxed">
           Noisecatcher has a dedicated{" "}
@@ -182,16 +186,19 @@ export default function AboutPage() {
         <p className="text-gray-400 text-sm leading-relaxed">
           Noise pollution kills. Chronic exposure to traffic, industrial, and aviation
           noise is linked to cardiovascular disease, stroke, hypertension, impaired
-          cognitive development in children, sleep disruption, and psychological trauma.
-          The World Health Organization estimates that at least one million healthy life
-          years are lost annually in Western Europe alone from traffic noise.
+          cognitive development in children, sleep disruption, type 2 diabetes, and psychological trauma.
+          In Europe alone — the second largest environmental health risk after air pollution — the
+          European Environment Agency (2025) estimates 73,000 premature deaths per year, 1.3 million
+          DALYs lost, 22,000 new type 2 diabetes cases, and €95.6 billion in economic costs, all from
+          transport noise. These are European figures only: no equivalent global estimate exists.
         </p>
         <p className="text-gray-400 text-sm leading-relaxed">
-          Noise is also unequally distributed. It follows the geography of poverty and
-          marginalization. Low-income communities live closer to highways, rail corridors,
-          airports, and industrial facilities — and have less political power to resist.
-          Noise from data centres, electrical transformers, and port operations is growing
-          in formerly residential neighbourhoods globally.{" "}
+          Noise is also unequally distributed. It follows the geography of poverty, race, and
+          dispossession. US federal highway programmes routed infrastructure through low-income
+          and minority neighbourhoods at a 90% federal cost-share — institutionalising sonic inequity
+          as structural racism (Haskell, 2022; Casey et al., EHP 2017). The same pattern appears
+          across post-apartheid Cape Town (Watkins/UCT, 2020), postcolonial Mapuche territories
+          (Cárcamo-Huechante, 2022), and cities from Cairo to São Paulo.{" "}
           <em>Mapping noise is mapping power.</em>
         </p>
       </section>
@@ -623,6 +630,18 @@ export default function AboutPage() {
             { href: "https://www.routledge.com/The-Auditory-Culture-Reader/Bull-Back/p/book/9781859736180", label: "Bull & Back (eds.) — The Auditory Culture Reader (Berg/Routledge, 2003)" },
             { href: "https://monoskop.org/Noise", label: "Monoskop — Noise (open wiki bibliography: Attali, Goodman, Voegelin, Schafer, Abu Hamdan, and the full noise studies canon)" },
             { href: "https://syntone.fr", label: "Syntone — revue critique de l'art radiophonique et de la création sonore (Beau Bruit / SCAM, 2008–)" },
+            { href: "https://mitpress.mit.edu/9780262517959/sonic-warfare/", label: "Steve Goodman — Sonic Warfare (MIT Press, 2010) — vibrational ontology, ecology of fear, audio virology" },
+            { href: "https://www.dukeupress.edu/acoustic-colonialism", label: "Luis E. Cárcamo-Huechante — Acoustic Colonialism: Acts of Mapuche Interference (Duke UP, 2022) — linguicide, colonial ear, allkütun" },
+            { href: "https://www.routledge.com/Sonic-Rebellions-Sound-and-Social-Justice/Canton/p/book/9781032420622", label: "Wanda Canton — Sonic Rebellions: Sound and Social Justice (Routledge, 2024) — gentrification soundscapes, UK Drill, Algerian Hirak" },
+            { href: "https://www.bloomsbury.com/uk/senses-of-vibration-9781441188465/", label: "Shelley Trower — Senses of Vibration (Continuum/Bloomsbury, 2012) — railway shock, nervous illness, auditory unconscious" },
+            { href: "https://direct.mit.edu/books/book/4203/EnlivenmentToward-a-Poetics-for-the-Anthropocene", label: "Andreas Weber — Enlivenment (MIT Press, 2019) — living commons, biopoetics; soundscape as shared aliveness" },
+            { href: "https://jamesbridle.com/books/ways-of-being", label: "James Bridle — Ways of Being (FSG, 2022) — more-than-human democracy; noise silencing animal communication as political suppression" },
+            { href: "https://dghaskell.com/sounds-wild-and-broken/", label: "David George Haskell — Sounds Wild and Broken (Viking, 2022) — sensory extinction; sonic inequity as structural racism" },
+            { href: "https://fordhampress.com/cultural-techniques-hb-9780823263752.html", label: "Bernhard Siegert — Cultural Techniques (Fordham UP, 2015) — signal/noise as cultural filter; regulatory thresholds as political operations" },
+            { href: "https://wesleyan.edu/wespress/booklist/978-0-8195-6028-1.html", label: "John Cage — Silence (Wesleyan UP, 1961) — 4'33''; anechoic chamber; the city as indeterminate score" },
+            { href: "https://brandonlabelle.net/publications/background-noise-perspectives-on-sound-art-second-edition/", label: "Brandon LaBelle — Background Noise: Perspectives on Sound Art (Bloomsbury, 2nd ed. 2015) — noise as medium; acoustic space as relational and contested" },
+            { href: "https://www.ucpress.edu/book/9780520382084/on-minimalism", label: "O'Brien & Robin — On Minimalism: Documenting a Musical Movement (UC Press, 2023) — documentation as canon-making; who is included in the archive" },
+            { href: "https://ced.berkeley.edu/work/local-code-by-nicholas-de-monchaux", label: "Nicholas de Monchaux — Local Code (Princeton Architectural Press, 2016) — urban acupuncture; GIS as justice tool; open data + local knowledge" },
           ].map(({ href, label }) => (
             <a key={href} href={href} target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-2 text-gray-400 hover:text-white text-sm transition-colors">
@@ -721,7 +740,7 @@ export default function AboutPage() {
         <p className="text-gray-600 text-xs mt-1">
           Part of the <em>Politics of Noise</em> research practice.
           v0.5 — Meter · Spectrogram · Audio import · YAMNet · Psychoacoustics · Map · Earwitness pins · Voice notes · Field notebooks · WHO health dashboard · SHA-256 chain of custody · P2P community layer · Complaint letter generator · Noise-Planet federation · Transect export · Abécédaire · Act · PWA.{" "}
-          14 noise source categories · 88 Abécédaire entries · 16 languages.
+          14 noise source categories · 107 Abécédaire entries · 16 languages.
         </p>
       </div>
     </div>

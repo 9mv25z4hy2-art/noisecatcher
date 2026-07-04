@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Mic, Map, BookOpen, Info, Zap, Sun, Moon, Languages, HelpCircle, BookMarked, FlaskConical } from "lucide-react";
+import { Mic, Map, BookOpen, Info, Zap, Sun, Moon, Languages, HelpCircle, BookMarked, FlaskConical, FileText, TrendingUp } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { LOCALE_ORDER, LOCALES, LOCALE_FLAGS, NON_LATIN_LOCALES, type Locale } from "@/lib/i18n/locales";
@@ -104,6 +104,8 @@ export default function Nav() {
     { href: "/abecedaire", label: t.nav_abecedaire,  icon: BookOpen,    mobileHide: false },
     { href: "/act",        label: t.nav_act,         icon: Zap,         mobileHide: false },
     { href: "/methodology",label: "Method",          icon: FlaskConical,mobileHide: true  },
+    { href: "/dossier",    label: "Dossier",         icon: FileText,    mobileHide: true  },
+    { href: "/longitudinal",label: "Change",         icon: TrendingUp,  mobileHide: true  },
     { href: "/carnets",    label: t.nav_carnets,     icon: BookMarked,  mobileHide: false },
     { href: "/help",       label: t.nav_help,        icon: HelpCircle,  mobileHide: true  },
     { href: "/about",      label: t.nav_about,       icon: Info,        mobileHide: false },
@@ -169,8 +171,8 @@ export default function Nav() {
         </div>
       </header>
 
-      {/* ── Mobile bottom nav ── */}
-      <nav
+      {/* ── Mobile bottom nav — hidden on /map (map page renders its own reliable nav) ── */}
+      {pathname !== "/map" && <nav
         className="sm:hidden fixed bottom-0 inset-x-0 z-40 backdrop-blur border-t flex"
         style={{ background: "var(--nc-nav-bg)", borderColor: "var(--nc-border)", paddingBottom: "env(safe-area-inset-bottom)" }}
         aria-label="Mobile navigation"
@@ -183,7 +185,11 @@ export default function Nav() {
               href={href}
               aria-current={active ? "page" : undefined}
               className="flex-1 flex flex-col items-center gap-1 py-3 min-h-[52px] justify-center transition-colors"
-              style={{ color: active ? "var(--nc-text)" : "var(--nc-text-3)" }}
+              style={{ color: active ? "var(--nc-text)" : "var(--nc-text-3)", touchAction: "manipulation" }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                window.location.href = href;
+              }}
             >
               <Icon className="w-5 h-5" />
               <span
@@ -195,7 +201,7 @@ export default function Nav() {
             </Link>
           );
         })}
-      </nav>
+      </nav>}
 
     </>
   );

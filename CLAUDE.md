@@ -44,7 +44,7 @@ All pin I/O is async. Use `loadPins()`, `savePin()`, `deletePin(id)` — never t
 `NoiseMeter` class: `start(deviceId?)`, `stop()`, `getAnalyser()`, `isActive()`. Fires `onReading(db)` on every animation frame. A-weighting per IEC 61672-1:2013. **Leq** (energy average) = `10 * log10(mean(10^(v/10)))` — not arithmetic mean.
 
 ### Abécédaire (`lib/abecedaire.ts`)
-88 entries. Each entry: `{ id, term, definition, category, sources?, relatedTerms?, relatedDbThreshold? }`. Categories: `acoustic | health | social | legal | environmental`.
+107 entries. Each entry: `{ id, term, definition, category, sources?, relatedTerms?, relatedDbThreshold? }`. Categories: `acoustic | health | social | legal | environmental`.
 
 ### Service Worker (`public/sw.js`)
 Vanilla JS. Caches app shell + map tiles. Registered in `app/layout.tsx`.

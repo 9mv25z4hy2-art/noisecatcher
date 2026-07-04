@@ -50,6 +50,36 @@ export default function MethodologyPage() {
         </div>
 
         <div className="nc-surface rounded-xl p-5 flex flex-col gap-3">
+          <p className="text-white text-xs font-semibold uppercase tracking-wider">Smartphone accuracy — what the research says</p>
+          <p className="text-sm leading-relaxed" style={{ color: "var(--nc-text-2)" }}>
+            Kardous &amp; Shaw (JASA, 2014) tested 192 sound measurement apps against a Class 1 SLM.
+            Only 4 iOS apps achieved within ±2 dB across the 65–95 dB test range. Zero Android apps
+            met the ±2 dB criterion — attributed to OS fragmentation and inconsistent hardware
+            integration. A 2016 follow-up found external calibrated microphones substantially improved
+            accuracy on all platforms. Murphy &amp; King (Applied Acoustics, 2016) tested 1,472 measurements
+            on 100 phones; one app was within 1 dB(A) of true levels.
+          </p>
+          <div className="nc-surface rounded-lg overflow-hidden">
+            {[
+              { condition: "Uncalibrated, built-in mic", accuracy: "±5–10 dB", use: "Rough screening only" },
+              { condition: "Calibrated, flagship iOS, selected app", accuracy: "±2–3 dB", use: "Community monitoring, trend documentation" },
+              { condition: "Calibrated app + external calibrated mic", accuracy: "±1–2 dB", use: "Approaches Class 2 SLM accuracy" },
+              { condition: "Regulatory / occupational assessment", accuracy: "Not met", use: "Requires certified Class 1/2 SLM" },
+            ].map(({ condition, accuracy, use }) => (
+              <div key={condition} className="grid grid-cols-3 gap-2 px-4 py-3 nc-divider-t first:border-t-0 text-xs">
+                <span style={{ color: "var(--nc-text-2)" }}>{condition}</span>
+                <span className="font-mono font-semibold nc-text">{accuracy}</span>
+                <span style={{ color: "var(--nc-text-3)" }}>{use}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs leading-relaxed" style={{ color: "var(--nc-text-3)" }}>
+            Sources: Kardous &amp; Shaw, JASA 2014 &amp; 2016; Murphy &amp; King, Applied Acoustics 2016.
+            Android accuracy has improved on newer flagship devices but remains variable across manufacturers.
+          </p>
+        </div>
+
+        <div className="nc-surface rounded-xl p-5 flex flex-col gap-3">
           <p className="text-white text-xs font-semibold uppercase tracking-wider">dBC and dBZ — low-frequency weighting</p>
           <p className="text-sm leading-relaxed" style={{ color: "var(--nc-text-2)" }}>
             Noisecatcher also computes C-weighted (dBC) and unweighted (dBZ) levels from the same FFT data,
@@ -179,10 +209,15 @@ export default function MethodologyPage() {
           </div>
           <p className="text-xs leading-relaxed" style={{ color: "var(--nc-text-3)" }}>
             NDSI was developed by Pijanowski et al. (2011) for soundscape ecology. In Noisecatcher it
-            provides a real-time biodiversity health reading alongside the noise pollution measurement —
-            making every outdoor session simultaneously an environmental justice data point and an
-            ecological observation. NDSI is suppressed when total band energy is below the noise floor
-            (silence, or indoor environments with no meaningful biophony signal).
+            provides a real-time biodiversity health reading alongside the noise pollution measurement.
+            NDSI is suppressed when total band energy is below the noise floor (silence, or indoor
+            environments with no meaningful biophony signal). <strong className="nc-text">Important limitation:</strong> the
+            frequency band assignments (1–2 kHz for anthrophony; 2–8 kHz for biophony) are not universal
+            — many anthropogenic sources emit above 2 kHz; many biological calls occur below 2 kHz.
+            NDSI should be used as a comparative, relative indicator — same location over time, or different
+            locations on the same device — not as an absolute biodiversity score. A 2024 JASA paper
+            (&ldquo;Rethinking ecoacoustic indices&rdquo;) calls for reconsidering the conceptual foundations of NDSI
+            and related indices.
           </p>
         </div>
 
@@ -209,6 +244,12 @@ export default function MethodologyPage() {
             ACI is particularly useful for detecting the Mosquito high-frequency deterrent (17–18.5 kHz):
             its continuous tonal emission produces a sharply anomalous ACI reading in an otherwise natural
             or mixed soundscape. See the HF Deterrent Scanner panel in the meter for direct frequency detection.
+            <strong className="nc-text"> Important limitation:</strong> ACI is biased in urban and anthropogenically
+            disturbed environments — diverse human-generated sounds inflate ACI values without reflecting
+            biological richness. Farina (2025, Oikos) — the original creator — has revisited ACI&apos;s
+            theoretical foundations; the index performs inconsistently as a biodiversity proxy across
+            ecosystem types (meta-analysis, PMC 2022). Use ACI as a comparative indicator, not a calibrated
+            biodiversity measurement.
           </p>
         </div>
       </section>
@@ -230,7 +271,7 @@ export default function MethodologyPage() {
             {
               n: "2",
               title: "Device microphone frequency response not corrected",
-              body: "A-weighting and the calibration offset together bring the mid-frequency range (200 Hz–8 kHz) close to true dB(A) for most devices. Very low and very high frequencies remain device-dependent. Readings are internally consistent within a single device and session; they are not comparable across different phone models without cross-calibration against a certified Type 1 or Type 2 sound level meter (IEC 61672).",
+              body: "A-weighting and the calibration offset together bring the mid-frequency range (200 Hz–8 kHz) close to true dB(A) for most devices. Very low and very high frequencies remain device-dependent. Readings are internally consistent within a single device and session; they are not comparable across different phone models without cross-calibration against a certified Class 1 or Class 2 sound level meter (IEC 61672-1:2013 — note: older ANSI terminology used ‘Type 1/2’; IEC 61672 replaced this with ‘Class 1/2’).",
             },
             {
               n: "3",
@@ -553,8 +594,81 @@ export default function MethodologyPage() {
         </div>
       </section>
 
+      {/* ── Key sources ── */}
+      <section className="flex flex-col gap-4">
+        <h2 className="nc-text font-semibold text-base nc-divider-b pb-2">Key sources</h2>
+        <p className="text-xs leading-relaxed" style={{ color: "var(--nc-text-3)" }}>
+          The claims and thresholds in this app are grounded in the following primary literature. Where evidence is contested or evolving, this is noted.
+        </p>
+        <div className="flex flex-col gap-2">
+          {[
+            {
+              citation: "WHO/Europe, Environmental Noise Guidelines for the European Region (2018)",
+              note: "Primary source for Lden/Lnight thresholds. European regional scope only.",
+            },
+            {
+              citation: "WHO/Europe, Burden of Disease from Environmental Noise (Fritschi et al., 2011)",
+              note: "1 million DALYs/year, western Europe — still the primary citation; updated by EEA 2025.",
+            },
+            {
+              citation: "EEA, Environmental Noise in Europe 2025",
+              note: "73,000 premature deaths, 1.3 M DALYs, 22,000 new T2D cases, €95.6B economic cost — European scope.",
+            },
+            {
+              citation: "Basner et al., 'Auditory and Non-auditory Effects of Noise on Health' (Lancet, 2014)",
+              note: "Most comprehensive systematic review of noise health effects across domains.",
+            },
+            {
+              citation: "Münzel et al., 'Environmental Noise and the Cardiovascular System' (JACC, 2018)",
+              note: "Mechanistic cardiovascular pathway: cortisol/adrenaline → NOX2 → ROS → endothelial dysfunction.",
+            },
+            {
+              citation: "Danish nationwide cohort — noise and type 2 diabetes (EHP, 2021; PMC8638828)",
+              note: "Foundational study linking traffic noise to T2D incidence, independent of air pollution.",
+            },
+            {
+              citation: "Kardous & Shaw, 'Evaluation of Smartphone Sound Measurement Applications' (JASA, 2014/2016)",
+              note: "192 apps tested; 4 iOS within ±2 dB; zero Android met criterion. External mics substantially improve accuracy.",
+            },
+            {
+              citation: "NIOSH, Criteria for a Recommended Standard — Occupational Noise Exposure (1998)",
+              note: "REL 85 dB(A)/8h; 3 dB exchange rate. Basis for 100 dB = 15 min safe exposure.",
+            },
+            {
+              citation: "Farina, 'Ecoacoustics: The Temporal Dimensions of Sound in the Ecology of Landscape' (Landscape Ecology, 2014)",
+              note: "ACI index; see also Farina (Oikos, 2025) — author revisiting urban ACI limitations.",
+            },
+            {
+              citation: "Jurdak et al. / JASA, 'Rethinking Ecoacoustic Indices' (2024)",
+              note: "NDSI frequency-band assignments (1–2 kHz / 2–8 kHz) critiqued as arbitrary. Review of index validity.",
+            },
+            {
+              citation: "Schafer, R.M., The Tuning of the World / The Soundscape (Knopf, 1977; Destiny Books, 1994)",
+              note: "Foundational soundscape framework: keynote sounds, soundmarks, hi-fi/lo-fi. ISO 12913 built on this.",
+            },
+            {
+              citation: "ISO 12913-1:2014 / ISO 12913-2:2018 — Acoustics: Soundscape",
+              note: "International standard for soundscape assessment; 8-attribute circumplex model used by EU urban planners.",
+            },
+            {
+              citation: "Casey et al., 'Race/Ethnicity, SES, Residential Segregation, and Noise' (EHP, 2017)",
+              note: "Foundational US environmental justice noise study — racial disparities in noise exposure, continental scale.",
+            },
+            {
+              citation: "Watkins, A.D., 'Sonic Apartheid' (UCT, 2020) — open.uct.ac.za/handle/11427/32488",
+              note: "Noise as postcolonial racial violence; Blikkiesdorp case study, Cape Town.",
+            },
+          ].map((src) => (
+            <div key={src.citation} className="nc-surface rounded-xl px-4 py-3 flex flex-col gap-0.5">
+              <p className="text-xs font-semibold nc-text">{src.citation}</p>
+              <p className="text-[11px] leading-relaxed" style={{ color: "var(--nc-text-3)" }}>{src.note}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <p className="te-label" style={{ color: "var(--nc-text-3)" }}>
-        Methodology updated June 2026. Standards referenced: IEC 61672-1:2013, ISO 1996-1:2016,
+        Methodology updated July 2026. Standards referenced: IEC 61672-1:2013, ISO 1996-1:2016,
         ISO 532-1:2017, ANSI S3.5-1997, ISO/IEC 27037:2012.
       </p>
     </div>

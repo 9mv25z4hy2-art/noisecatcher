@@ -182,11 +182,9 @@ export async function exportGeoJSON(pins: NoisePin[]): Promise<void> {
     },
   }));
 
-  // Hash the substantive data (compact JSON, no whitespace) for self-attestation.
-  // This lets a verifier detect accidental corruption or deliberate tampering:
-  // serialize the 'features' array with JSON.stringify, compute SHA-256, compare.
   const featuresJson = JSON.stringify(features);
   const hash = await sha256hex(featuresJson);
+  const calibrationOffset = parseFloat(localStorage.getItem("noisecatcher_calibration_offset") ?? "0") || 0;
 
   const geojson = {
     type: "FeatureCollection",
@@ -197,6 +195,16 @@ export async function exportGeoJSON(pins: NoisePin[]): Promise<void> {
       covers: "features array (compact JSON)",
       generated: new Date().toISOString(),
       note: "To verify: JSON.stringify(geojson.features) → SHA-256 → compare to this value.",
+    },
+    _measurement: {
+      instrument: "Noisecatcher — electroacoustic PWA (noisecatcher.vercel.app)",
+      weighting: "A-weighted dB(A) — IEC 61672-1:2013",
+      calibrationOffsetDb: calibrationOffset,
+      calibrated: calibrationOffset !== 0,
+      measurementUncertainty: calibrationOffset !== 0
+        ? "±3 dB (95% confidence) — offset applied against reference source"
+        : "±10 dB — no calibration applied. Relative readings only. Apply calibration for absolute SPL.",
+      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
     },
   };
 

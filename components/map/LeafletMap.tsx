@@ -537,7 +537,7 @@ export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDele
   }, [ready, onMapControls, locateMe, gpsPin]);
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full" style={{ pointerEvents: "auto" }}>
       <div
         ref={containerRef}
         className="w-full h-full"

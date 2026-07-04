@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mic, MicOff, AlertTriangle, Info, MapPin, SlidersHorizontal, Headphones, FileText } from "lucide-react";
+import { Mic, MicOff, AlertTriangle, Info, MapPin, SlidersHorizontal, Headphones, FileText, BellRing, BellOff, Wand2, Lock, Unlock, Share2, Check } from "lucide-react";
 import { NoiseMeter as NoiseMeterEngine, listAudioInputDevices, type ExtendedMeterReading } from "@/lib/audio/meter";
 import { getThreshold, THRESHOLDS } from "@/lib/thresholds";
+import { ABECEDAIRE } from "@/lib/abecedaire";
 import AlertModal from "./AlertModal";
 import CalibrationModal from "./CalibrationModal";
 import AudioRecorderPanel from "./AudioRecorder";
@@ -23,7 +24,7 @@ import { startOrientationTracking, requestOrientationPermission, bearingToLabel 
 import { startMotionTracking, requestMotionPermission } from "@/lib/motion";
 import type { ThresholdLevel } from "@/lib/thresholds";
 import { useI18n } from "@/lib/i18n/context";
-import { saveReport, loadCarnets, type Carnet } from "@/lib/db";
+import { saveReport, saveVoiceNote, loadCarnets, type Carnet } from "@/lib/db";
 import { startBarometer, type BarometerReading } from "@/lib/audio/barometer";
 import { computeSII, siiLabel } from "@/lib/audio/sii";
 
@@ -107,6 +108,55 @@ export default function NoiseMeter() {
   const motionCleanupRef = useRef<(() => void) | null>(null);
   const gpsWatchRef = useRef<number | null>(null);
 
+  // ── Wake Lock ────────────────────────────────────────────────────────────────
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+  const [wakeLockActive, setWakeLockActive] = useState(false);
+
+  // ── Expert mode ──────────────────────────────────────────────────────────────
+  const [expertMode, setExpertMode] = useState(() => {
+    if (typeof localStorage === "undefined") return false;
+    return localStorage.getItem("nc_expert_mode") === "1";
+  });
+
+  // ── Continuous threshold alert ───────────────────────────────────────────────
+  const [continuousAlertEnabled, setContinuousAlertEnabled] = useState(false);
+  const [alertThresholdDb, setAlertThresholdDb] = useState(55);
+  const [alertDurationMin, setAlertDurationMin] = useState(5);
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission | "unsupported">("default");
+  const thresholdExceedStartRef = useRef<number | null>(null);
+  const continuousAlertFiredRef = useRef(false);
+  const [continuousAlertStatus, setContinuousAlertStatus] = useState<"idle" | "counting" | "fired">("idle");
+  const [continuousElapsedMin, setContinuousElapsedMin] = useState(0);
+
+  // ── Audio clip at peak ───────────────────────────────────────────────────────
+  const [captureAudioAtPeak, setCaptureAudioAtPeak] = useState(false);
+  const peakMediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const peakAudioChunksRef = useRef<Blob[]>([]);
+  const peakClipBlobRef = useRef<Blob | null>(null);
+  const peakClipTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [peakClipCaptured, setPeakClipCaptured] = useState(false);
+
+  // Notification permission probe
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (typeof Notification === "undefined") { setNotifPermission("unsupported"); return; }
+    setNotifPermission(Notification.permission);
+  }, []);
+
+  // Re-acquire Wake Lock when page becomes visible again (e.g. user returns from another app)
+  useEffect(() => {
+    async function onVisibility() {
+      if (document.visibilityState === "visible" && isActive && "wakeLock" in navigator) {
+        try {
+          wakeLockRef.current = await navigator.wakeLock.request("screen");
+          setWakeLockActive(true);
+        } catch { /* non-fatal */ }
+      }
+    }
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [isActive]);
+
   // Enumerate audio input devices after mount. Labels are only available after
   // the user has granted microphone permission (first measurement start).
   // We refresh after each successful getUserMedia by listening to devicechange.
@@ -157,7 +207,38 @@ export default function NoiseMeter() {
         return;
       }
       setPeak((prev) => {
-        if (newDb > prev) { setPeakAt(Date.now()); return newDb; }
+        if (newDb > prev) {
+          setPeakAt(Date.now());
+          // Trigger audio clip capture on new peak (runs outside callback — uses ref)
+          if (captureAudioAtPeak) {
+            const stream = meterRef.current?.getStream();
+            if (stream && typeof MediaRecorder !== "undefined") {
+              // Cancel any ongoing peak capture
+              if (peakClipTimeoutRef.current) clearTimeout(peakClipTimeoutRef.current);
+              peakMediaRecorderRef.current?.stop();
+              peakAudioChunksRef.current = [];
+              peakClipBlobRef.current = null;
+              // Determine best mime type
+              const mime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+                ? "audio/webm;codecs=opus"
+                : MediaRecorder.isTypeSupported("audio/webm")
+                ? "audio/webm"
+                : "audio/ogg";
+              try {
+                const mr = new MediaRecorder(stream, { mimeType: mime });
+                mr.ondataavailable = (e) => { if (e.data.size > 0) peakAudioChunksRef.current.push(e.data); };
+                mr.onstop = () => {
+                  peakClipBlobRef.current = new Blob(peakAudioChunksRef.current, { type: mime });
+                  setPeakClipCaptured(true);
+                };
+                mr.start(1000); // collect in 1-second chunks
+                peakMediaRecorderRef.current = mr;
+                peakClipTimeoutRef.current = setTimeout(() => mr.state === "recording" && mr.stop(), 15000);
+              } catch { /* non-fatal — MediaRecorder may not support the stream */ }
+            }
+          }
+          return newDb;
+        }
         return prev;
       });
       setSessionReadings((prev) => {
@@ -179,8 +260,43 @@ export default function NoiseMeter() {
         const now = Date.now();
         if (!alertDismissedAt || now - alertDismissedAt > 60000) setShowAlert(true);
       }
+
+      // ── Continuous threshold alert ──────────────────────────────────────────
+      if (continuousAlertEnabled) {
+        const now = Date.now();
+        if (newDb >= alertThresholdDb) {
+          if (!thresholdExceedStartRef.current) thresholdExceedStartRef.current = now;
+          const elapsed = (now - thresholdExceedStartRef.current) / 60000;
+          setContinuousElapsedMin(Math.floor(elapsed));
+          if (!continuousAlertFiredRef.current) {
+            setContinuousAlertStatus("counting");
+            if (elapsed >= alertDurationMin) {
+              continuousAlertFiredRef.current = true;
+              setContinuousAlertStatus("fired");
+              if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+                new Notification("Noisecatcher — threshold sustained", {
+                  body: `${alertThresholdDb} dB(A) exceeded for over ${alertDurationMin} min`,
+                  tag: "nc-threshold-alert",
+                  silent: false,
+                });
+              }
+              navigator.vibrate?.([300, 100, 300, 100, 600]);
+            }
+          }
+        } else {
+          thresholdExceedStartRef.current = null;
+          continuousAlertFiredRef.current = false;
+          setContinuousAlertStatus("idle");
+          setContinuousElapsedMin(0);
+        }
+      }
+
+      // ── Audio clip at peak ──────────────────────────────────────────────────
+      if (captureAudioAtPeak) {
+        // Trigger is handled in the setPeak callback below — we just need newDb available
+      }
     },
-    [alertDismissedAt, calibrationOffset]
+    [alertDismissedAt, calibrationOffset, continuousAlertEnabled, alertThresholdDb, alertDurationMin, captureAudioAtPeak]
   );
 
   const handleError = useCallback((msg: string) => {
@@ -198,6 +314,13 @@ export default function NoiseMeter() {
     prevLevelRef.current = null;
     sessionStartRef.current = Date.now();
     setSessionDurationS(0);
+    peakClipBlobRef.current = null;
+    peakAudioChunksRef.current = [];
+    setPeakClipCaptured(false);
+    thresholdExceedStartRef.current = null;
+    continuousAlertFiredRef.current = false;
+    setContinuousAlertStatus("idle");
+    setContinuousElapsedMin(0);
 
     // Start orientation + motion tracking (iOS 13+ needs permission from user gesture)
     const [hasOrientation, hasMotion] = await Promise.all([
@@ -232,6 +355,14 @@ export default function NoiseMeter() {
     if (devs.length > 0) setAudioDevices(devs);
     setIsActive(true);
 
+    // Wake Lock — keep screen on during continuous measurement
+    if ("wakeLock" in navigator) {
+      try {
+        wakeLockRef.current = await navigator.wakeLock.request("screen");
+        setWakeLockActive(true);
+      } catch { /* non-fatal: denied or unsupported */ }
+    }
+
     // Passive GPS watch for multi-device TDOA — low accuracy, minimal battery impact
     if (typeof navigator !== "undefined" && navigator.geolocation) {
       gpsWatchRef.current = navigator.geolocation.watchPosition(
@@ -247,6 +378,16 @@ export default function NoiseMeter() {
       navigator.geolocation.clearWatch(gpsWatchRef.current);
       gpsWatchRef.current = null;
     }
+    wakeLockRef.current?.release().catch(() => {});
+    wakeLockRef.current = null;
+    setWakeLockActive(false);
+    // Stop any ongoing peak audio capture
+    if (peakClipTimeoutRef.current) clearTimeout(peakClipTimeoutRef.current);
+    if (peakMediaRecorderRef.current?.state === "recording") peakMediaRecorderRef.current.stop();
+    thresholdExceedStartRef.current = null;
+    continuousAlertFiredRef.current = false;
+    setContinuousAlertStatus("idle");
+    setContinuousElapsedMin(0);
     meterRef.current?.stop();
     meterRef.current = null;
     orientationCleanupRef.current?.();
@@ -320,6 +461,26 @@ export default function NoiseMeter() {
       bearing: bearing ?? null,
       sessionSha256,
     });
+    // Attach peak audio clip as a VoiceNote if one was captured
+    if (captureAudioAtPeak && peakClipBlobRef.current) {
+      try {
+        const reader = new FileReader();
+        const dataUrl: string = await new Promise((res, rej) => {
+          reader.onload = () => res(reader.result as string);
+          reader.onerror = rej;
+          reader.readAsDataURL(peakClipBlobRef.current!);
+        });
+        await saveVoiceNote({
+          audioDataUrl: dataUrl,
+          durationS: 15,
+          attachedTo: report.id,
+          attachedType: "report",
+          carnetId: selectedCarnetId || undefined,
+          transcript: `Peak audio clip — ${peak.toFixed(1)} dB(A) — captured automatically at peak reading`,
+        });
+      } catch { /* non-fatal */ }
+    }
+
     stopMeter();
     router.push(`/report/${report.id}`);
   };
@@ -374,6 +535,30 @@ export default function NoiseMeter() {
     sessionReadings.length > 0
       ? Math.round(10 * Math.log10(sessionReadings.reduce((acc, v) => acc + Math.pow(10, v / 10), 0) / sessionReadings.length) * 10) / 10
       : null;
+
+  const [corrobCopied, setCorrobCopied] = useState(false);
+
+  function copyCorroboration() {
+    if (average === null || sessionReadings.length === 0) return;
+    const stats = computeStats(sessionReadings);
+    const payload = JSON.stringify({
+      type: "noisecatcher-corroboration-v1",
+      leq: average,
+      peak,
+      l10: stats?.l10 ?? average,
+      l50: stats?.l50 ?? average,
+      l90: stats?.l90 ?? average,
+      sampleCount: sessionReadings.length,
+      timestamp: sessionStartRef.current ? new Date(sessionStartRef.current).toISOString() : new Date().toISOString(),
+      durationS: Math.round(sessionDurationS),
+      calibrationOffset,
+      ...(gps ? { location: { lat: gps.lat, lng: gps.lng } } : {}),
+    });
+    navigator.clipboard.writeText(payload).then(() => {
+      setCorrobCopied(true);
+      setTimeout(() => setCorrobCopied(false), 3000);
+    }).catch(() => {});
+  }
 
   const euDose   = average !== null && sessionDurationS > 0 ? calcDose(average, sessionDurationS, 80, 3) : null;
   const oshaDose = average !== null && sessionDurationS > 0 ? calcDose(average, sessionDurationS, 90, 5) : null;
@@ -525,7 +710,7 @@ export default function NoiseMeter() {
       })()}
 
       {/* ── Spectral weighting: dBC / dBZ (active only) ── */}
-      {isActive && dbc !== null && dbz !== null && (
+      {isActive && expertMode && dbc !== null && dbz !== null && (
         <div className="w-full te-panel rounded-md overflow-hidden">
           <div className="px-3 py-1.5 te-rule flex items-center gap-2">
             <span className="te-label text-white/40 uppercase tracking-wider text-[10px]">Spectral weighting</span>
@@ -555,8 +740,32 @@ export default function NoiseMeter() {
         </div>
       )}
 
+      {/* ── Expert mode toggle ── */}
+      {isActive && (
+        <div className="w-full flex items-center justify-between">
+          <span className="te-label text-[10px]" style={{ color: "var(--nc-text-3)" }}>Expert panels</span>
+          <button
+            onClick={() => {
+              const next = !expertMode;
+              setExpertMode(next);
+              localStorage.setItem("nc_expert_mode", next ? "1" : "0");
+            }}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded te-label text-[10px] transition-colors"
+            style={{
+              background: expertMode ? "var(--nc-bg-raised)" : "transparent",
+              border: "1px solid var(--nc-border-mid)",
+              color: expertMode ? "var(--nc-text)" : "var(--nc-text-3)",
+            }}
+            title="Show psychoacoustics, ACI, NDSI, SII, HF scanner, barometer"
+          >
+            <Wand2 className="w-3 h-3" />
+            {expertMode ? "Expert on" : "Expert off"}
+          </button>
+        </div>
+      )}
+
       {/* ── Psychoacoustic metrics (active only) ── */}
-      {isActive && psychoMetrics && (
+      {isActive && expertMode && psychoMetrics && (
         <div className="w-full te-panel rounded-md overflow-hidden">
           <div className="px-3 py-1.5 te-rule">
             <span className="te-label text-white/40 uppercase tracking-wider text-[10px]">{t.psycho_title}</span>
@@ -580,7 +789,7 @@ export default function NoiseMeter() {
       )}
 
       {/* ── Acoustic Complexity Index ── */}
-      {isActive && aciValue !== null && (
+      {isActive && expertMode && aciValue !== null && (
         <div className="w-full te-panel rounded-md overflow-hidden">
           <div className="px-3 py-1.5 te-rule flex items-center justify-between">
             <span className="te-label text-white/40 uppercase tracking-wider text-[10px]">Acoustic Complexity Index</span>
@@ -604,7 +813,7 @@ export default function NoiseMeter() {
       )}
 
       {/* ── NDSI — Normalized Difference Soundscape Index ── */}
-      {isActive && ndsi !== null && (
+      {isActive && expertMode && ndsi !== null && (
         <div className="w-full te-panel rounded-md overflow-hidden">
           <div className="px-3 py-1.5 te-rule flex items-center justify-between">
             <span className="te-label text-white/40 uppercase tracking-wider text-[10px]">Soundscape Index (NDSI)</span>
@@ -655,7 +864,7 @@ export default function NoiseMeter() {
       )}
 
       {/* ── Speech Intelligibility Index (SII) — indicative ── */}
-      {isActive && sii !== null && (
+      {isActive && expertMode && sii !== null && (
         <div className="w-full te-panel rounded-md overflow-hidden">
           <div className="px-3 py-1.5 te-rule flex items-center justify-between">
             <span className="te-label text-white/40 uppercase tracking-wider text-[10px]">{t.sii_label}</span>
@@ -681,7 +890,7 @@ export default function NoiseMeter() {
       )}
 
       {/* ── HF Deterrent Scanner ── */}
-      {isActive && hfBand !== null && (
+      {isActive && expertMode && hfBand !== null && (
         <div className="w-full te-panel rounded-md overflow-hidden">
           <div className="px-3 py-1.5 te-rule flex items-center justify-between">
             <span className="te-label text-white/40 uppercase tracking-wider text-[10px]">HF Deterrent Scanner</span>
@@ -705,7 +914,7 @@ export default function NoiseMeter() {
       )}
 
       {/* ── Barometer ── only shown when Generic Sensor API is active (Chrome + device) ── */}
-      {isActive && baroSupported && baroReading !== null && (
+      {isActive && expertMode && baroSupported && baroReading !== null && (
         <div className="w-full te-panel rounded-md overflow-hidden">
           <div className="px-3 py-1.5 te-rule flex items-center justify-between">
             <span className="te-label text-white/40 uppercase tracking-wider text-[10px]">Atmospheric Pressure</span>
@@ -829,6 +1038,163 @@ export default function NoiseMeter() {
         </div>
       )}
 
+      {/* ── Wake Lock status ── */}
+      {wakeLockActive && (
+        <div className="w-full flex items-center gap-2 px-3 py-1.5 rounded te-label text-[10px]" style={{ background: "var(--nc-bg-raised)", border: "1px solid var(--nc-border)" }}>
+          <Lock className="w-3 h-3 text-green-500 shrink-0" />
+          <span style={{ color: "var(--nc-text-2)" }}>Screen lock suppressed — screen will stay on during measurement.</span>
+        </div>
+      )}
+      {!wakeLockActive && !isActive && "wakeLock" in navigator && (
+        <div className="w-full flex items-center gap-2 px-3 py-1.5 rounded te-label text-[10px]" style={{ background: "var(--nc-bg-raised)", border: "1px solid var(--nc-border)" }}>
+          <Unlock className="w-3 h-3 shrink-0" style={{ color: "var(--nc-text-3)" }} />
+          <span style={{ color: "var(--nc-text-3)" }}>Screen lock will be suppressed when measurement starts (Wake Lock API).</span>
+        </div>
+      )}
+
+      {/* ── Continuous threshold alert ── */}
+      <div className="w-full te-panel rounded-md overflow-hidden">
+        <div className="px-3 py-2 te-rule flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            {continuousAlertEnabled ? <BellRing className="w-3.5 h-3.5 text-amber-400 shrink-0" /> : <BellOff className="w-3.5 h-3.5 shrink-0" style={{ color: "var(--nc-text-3)" }} />}
+            <span className="te-label text-[10px] uppercase tracking-wider" style={{ color: "var(--nc-text-2)" }}>Threshold monitor</span>
+          </div>
+          <button
+            onClick={() => {
+              if (!continuousAlertEnabled && notifPermission === "default" && typeof Notification !== "undefined") {
+                Notification.requestPermission().then(p => setNotifPermission(p));
+              }
+              setContinuousAlertEnabled(v => !v);
+            }}
+            className="px-2 py-0.5 rounded te-label text-[10px] transition-colors"
+            style={{
+              background: continuousAlertEnabled ? "rgba(251,146,60,0.15)" : "transparent",
+              border: `1px solid ${continuousAlertEnabled ? "rgba(251,146,60,0.4)" : "var(--nc-border-mid)"}`,
+              color: continuousAlertEnabled ? "#fb923c" : "var(--nc-text-3)",
+            }}
+          >
+            {continuousAlertEnabled ? "On" : "Off"}
+          </button>
+        </div>
+        <div className="px-3 py-2 flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 flex flex-col gap-0.5">
+              <label className="te-label text-[9px] uppercase tracking-wider" style={{ color: "var(--nc-text-3)" }}>Alert above</label>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number" min={30} max={130} step={1}
+                  value={alertThresholdDb}
+                  onChange={e => setAlertThresholdDb(Number(e.target.value))}
+                  className="w-16 px-2 py-1 rounded text-xs font-mono te-label border focus:outline-none"
+                  style={{ background: "var(--nc-bg-raised)", borderColor: "var(--nc-border-mid)", color: "var(--nc-text)" }}
+                />
+                <span className="te-label text-[10px]" style={{ color: "var(--nc-text-3)" }}>dB(A)</span>
+              </div>
+            </div>
+            <div className="flex-1 flex flex-col gap-0.5">
+              <label className="te-label text-[9px] uppercase tracking-wider" style={{ color: "var(--nc-text-3)" }}>For at least</label>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number" min={1} max={120} step={1}
+                  value={alertDurationMin}
+                  onChange={e => setAlertDurationMin(Number(e.target.value))}
+                  className="w-16 px-2 py-1 rounded text-xs font-mono te-label border focus:outline-none"
+                  style={{ background: "var(--nc-bg-raised)", borderColor: "var(--nc-border-mid)", color: "var(--nc-text)" }}
+                />
+                <span className="te-label text-[10px]" style={{ color: "var(--nc-text-3)" }}>min</span>
+              </div>
+            </div>
+          </div>
+          {continuousAlertEnabled && isActive && (
+            <div className="flex items-center gap-2">
+              <div
+                className="w-2 h-2 rounded-full shrink-0"
+                style={{
+                  background: continuousAlertStatus === "fired" ? "#f87171" : continuousAlertStatus === "counting" ? "#fb923c" : "#4ade80",
+                  animation: continuousAlertStatus === "counting" ? "pulse 1s infinite" : undefined,
+                }}
+              />
+              <span className="te-label text-[10px]" style={{ color: continuousAlertStatus === "fired" ? "#f87171" : "var(--nc-text-3)" }}>
+                {continuousAlertStatus === "fired"
+                  ? `⚠ Alert fired — ${alertThresholdDb} dB(A) sustained ≥${alertDurationMin} min`
+                  : continuousAlertStatus === "counting"
+                  ? `Above ${alertThresholdDb} dB(A) for ${continuousElapsedMin} min — alert at ${alertDurationMin} min`
+                  : `Monitoring — alert if above ${alertThresholdDb} dB(A) for ${alertDurationMin} min`}
+              </span>
+            </div>
+          )}
+          {notifPermission === "denied" && continuousAlertEnabled && (
+            <p className="te-label text-[9px]" style={{ color: "#f87171" }}>Notification permission denied — visual + vibration alert only. Allow notifications in browser settings for background alerts.</p>
+          )}
+          {notifPermission === "unsupported" && continuousAlertEnabled && (
+            <p className="te-label text-[9px]" style={{ color: "var(--nc-text-3)" }}>Notification API not supported in this browser — visual + vibration alert only.</p>
+          )}
+          <p className="te-label text-[9px]" style={{ color: "var(--nc-text-3)" }}>
+            55 dB(A) = EU END major annoyance threshold · 45 dB(A) = WHO Lnight residential
+          </p>
+        </div>
+      </div>
+
+      {/* ── Audio clip at peak ── */}
+      <div className="w-full te-panel rounded-md overflow-hidden">
+        <div className="px-3 py-2 te-rule flex items-center justify-between gap-2">
+          <span className="te-label text-[10px] uppercase tracking-wider" style={{ color: "var(--nc-text-2)" }}>Audio clip at peak</span>
+          <button
+            onClick={() => setCaptureAudioAtPeak(v => !v)}
+            className="px-2 py-0.5 rounded te-label text-[10px] transition-colors"
+            style={{
+              background: captureAudioAtPeak ? "rgba(74,222,128,0.1)" : "transparent",
+              border: `1px solid ${captureAudioAtPeak ? "rgba(74,222,128,0.4)" : "var(--nc-border-mid)"}`,
+              color: captureAudioAtPeak ? "#4ade80" : "var(--nc-text-3)",
+            }}
+          >
+            {captureAudioAtPeak ? "On" : "Off"}
+          </button>
+        </div>
+        <div className="px-3 py-2 flex flex-col gap-1">
+          {peakClipCaptured && (
+            <div className="flex items-center gap-2 text-[10px] te-label" style={{ color: "#4ade80" }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" />
+              15 s clip captured at last peak — will attach to report as a voice note
+            </div>
+          )}
+          {!peakClipCaptured && captureAudioAtPeak && isActive && (
+            <div className="flex items-center gap-2 text-[10px] te-label" style={{ color: "var(--nc-text-3)" }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-white/20 shrink-0" />
+              Waiting for new peak…
+            </div>
+          )}
+          <p className="te-label text-[9px]" style={{ color: "var(--nc-text-3)" }}>
+            When a new peak reading is set, a 15-second audio clip is recorded and attached to your session report. Audio is stored locally only — never transmitted. Opt-in only. For ECHR Art. 8 filings, a clip at the moment of exceedance significantly strengthens evidentiary value.
+          </p>
+        </div>
+      </div>
+
+      {/* ── Corroboration export ── */}
+      {average !== null && sessionReadings.length >= 5 && (
+        <div className="w-full rounded-xl px-4 py-3 flex flex-col gap-2" style={{ background: "var(--nc-bg-raised)", border: "1px solid var(--nc-border)" }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Share2 className="w-3.5 h-3.5 shrink-0" style={{ color: "var(--nc-text-3)" }} />
+              <span className="te-label text-xs font-semibold" style={{ color: "var(--nc-text-2)" }}>Copy session to share</span>
+            </div>
+            <button
+              onClick={copyCorroboration}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-md te-label text-[11px] transition-colors"
+              style={corrobCopied
+                ? { background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.4)", color: "#4ade80" }
+                : { background: "var(--nc-bg)", border: "1px solid var(--nc-border-mid)", color: "var(--nc-text-2)" }
+              }
+            >
+              {corrobCopied ? <><Check className="w-3 h-3" /> Copied</> : <><Share2 className="w-3 h-3" /> Copy JSON</>}
+            </button>
+          </div>
+          <p className="te-label text-[9px]" style={{ color: "var(--nc-text-3)" }}>
+            Copies your session as a corroboration JSON. A co-witness can paste this into the Dossier builder (Step 1) to provide independent verification of the same noise event. Two independent measurements of the same event significantly strengthen evidentiary value.
+          </p>
+        </div>
+      )}
+
       {/* ── Start / Stop + Stop & Report + Calibrate ── */}
       <div className="flex items-center gap-3 w-full">
         <button
@@ -883,6 +1249,26 @@ export default function NoiseMeter() {
           </div>
         </div>
       )}
+
+      {/* ── Abécédaire: surface relevant terms for current reading ── */}
+      {db !== null && isActive && db >= 40 && (() => {
+        const relevant = ABECEDAIRE
+          .filter(e => e.relatedDbThreshold !== undefined && e.relatedDbThreshold <= db)
+          .sort((a, b) => (b.relatedDbThreshold ?? 0) - (a.relatedDbThreshold ?? 0))
+          .slice(0, 3);
+        if (!relevant.length) return null;
+        return (
+          <div className="w-full rounded-md border p-3 flex flex-col gap-2" style={{ borderColor: "var(--nc-border)", background: "var(--nc-bg-raised)" }}>
+            <span className="text-[10px] uppercase tracking-widest" style={{ color: "var(--nc-text-3)" }}>Relevant terms · Abécédaire</span>
+            {relevant.map(entry => (
+              <Link key={entry.id} href={`/abecedaire#${entry.id}`} className="flex flex-col gap-0.5 group">
+                <span className="text-xs font-semibold group-hover:underline" style={{ color: "var(--nc-text)" }}>{entry.term}</span>
+                <span className="text-[11px] leading-relaxed line-clamp-2" style={{ color: "var(--nc-text-3)" }}>{entry.definition}</span>
+              </Link>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* ── Audio recorder ── */}
       <AudioRecorderPanel />

@@ -41,11 +41,14 @@ export const ABECEDAIRE: AbecedaireEntry[] = [
     definition:
       "The documented physiological pathways by which chronic noise exposure contributes to hypertension, coronary artery disease, stroke, and other vascular conditions.",
     context:
-      "Noise is not merely annoying — it is metabolic. The auditory system triggers cortisol and adrenaline release even during sleep. Over years, this stress response hardens arteries, elevates blood pressure, and increases heart attack risk. Studies near major European airports have quantified this: each 10 dB increase in night noise is associated with a 14% increase in hypertension risk.",
+      "Noise is not merely annoying — it is metabolic. The auditory system triggers cortisol and adrenaline release even during sleep. Over years, this chronic stress response generates reactive oxygen species via NADPH oxidase, causes endothelial dysfunction, hardens arteries, elevates blood pressure, and increases heart attack risk. Meta-analyses find a 5–14% increase in hypertension risk per 10 dB increase in night noise — the WHO 2018 systematic review of 26 cross-sectional studies found a relative risk of 1.05 (5%) per 10 dB for road traffic noise; individual studies near European airports report up to 14%. The EEA (2025) estimates 73,000 premature deaths per year in Europe attributable to transport noise, alongside 48,000–50,000 new cases of ischaemic heart disease and 22,000 new cases of type 2 diabetes annually.",
     relatedDbThreshold: 55,
     sources: [
-      "Münzel et al., 'Cardiovascular Effects of Environmental Noise Exposure' (2014), European Heart Journal",
-      "WHO Environmental Noise Guidelines for the European Region (2018)",
+      "Münzel et al., 'Environmental Noise and the Cardiovascular System' (2018), JACC 71(6):688–697",
+      "Münzel/Daiber group, 'Vascular effects of environmental noise' (2017), European Heart Journal — molecular mechanism (NOX2/ROS pathway)",
+      "WHO Environmental Noise Guidelines for the European Region (2018) — systematic review PMC5858448",
+      "EEA, 'Environmental Noise in Europe 2025' — 73,000 premature deaths, 22,000 T2D cases/year",
+      "Danish nationwide cohort study on noise and type 2 diabetes (EHP, 2021) — PMC8638828",
     ],
     relatedTerms: ["Night Noise", "Cortisol Response", "Equivalent Continuous Sound Level"],
   },
@@ -410,15 +413,18 @@ export const ABECEDAIRE: AbecedaireEntry[] = [
 
   {
     id: "type-1-type-2-meter",
-    term: "Type 1 / Type 2 Sound Level Meter",
+    term: "Class 1 / Class 2 Sound Level Meter",
     category: "legal",
     definition:
-      "Classification of sound level meters by precision grade under the IEC 61672-1 standard. Type 1 (precision grade) has a tolerance of ±1 dB; Type 2 (general purpose) has a tolerance of ±1.5 dB. Legal and regulatory noise measurements typically require Type 1 instruments.",
+      "Classification of sound level meters by precision grade under the current IEC 61672-1:2013 standard. Class 1 (precision grade) has a tolerance of ±1.1 dB at 1 kHz; Class 2 (general purpose) has a tolerance of ±1.4 dB at 1 kHz. Tolerances widen significantly at frequency extremes. Legal and regulatory noise measurements typically require Class 1 instruments. Note: the older ANSI terminology used 'Type 1 / Type 2' — IEC 61672 replaced this with 'Class 1 / Class 2.'",
     context:
-      "The Type 1 / Type 2 distinction is where scientific credibility and legal admissibility are determined. A smartphone measurement — even a well-calibrated one — is not a certified instrument. This matters in court, in planning appeals, and in noise nuisance enforcement. Certified instruments must be regularly calibrated against acoustic references and operated by trained technicians. The cost of Type 1 equipment (typically €1,000–5,000) and the expertise required place formal acoustic evidence out of reach for most individuals and community groups. Noisecatcher's data can support a case, establish a pattern, and justify a request for official measurement — but the certified measurement itself requires institutional resources that are inequitably distributed.",
+      "The Class 1 / Class 2 distinction is where scientific credibility and legal admissibility are determined. A smartphone measurement — even a well-calibrated one — is not a certified instrument. This matters in court, in planning appeals, and in noise nuisance enforcement. Certified instruments must be regularly calibrated against acoustic references and operated by trained technicians. The cost of Class 1 equipment (typically €1,000–5,000) and the expertise required place formal acoustic evidence out of reach for most individuals and community groups. Noisecatcher's data can support a case, establish a pattern, and justify a request for official measurement — but the certified measurement itself requires institutional resources that are inequitably distributed. Smartphone accuracy under controlled conditions with calibration: flagship iOS devices with selected apps can achieve ±2–3 dB(A) at mid-frequencies (Kardous & Shaw, JASA 2014/2016); uncalibrated devices are typically ±5–10 dB. Zero Android apps met the ±2 dB criterion in the 2014 study, though newer flagship devices have improved.",
     sources: [
       "IEC 61672-1:2013 — Electroacoustics: Sound level meters — Part 1: Specifications",
       "ISO 1996-2:2017 — Determination of sound pressure levels",
+      "Kardous & Shaw, 'Evaluation of smartphone sound measurement applications' (JASA, 2014) — 192 apps tested; only 4 iOS apps within ±2 dB",
+      "Kardous & Shaw, 'Evaluation of smartphone sound measurement applications: follow-up study' (JASA, 2016) — external microphones substantially improve accuracy",
+      "Murphy & King, 'Smartphone-based noise measurement' (Applied Acoustics, 2016) — 1,472 tests on 100 phones",
     ],
     relatedTerms: ["Sound Pressure Level", "dB(A) — A-Weighting", "WHO Environmental Noise Guidelines"],
   },
@@ -606,9 +612,9 @@ export const ABECEDAIRE: AbecedaireEntry[] = [
     phonetic: "L-RAD",
     category: "legal",
     definition:
-      "A directed-energy acoustic weapon manufactured by Genasys Inc. (formerly LRAD Corporation), capable of projecting sustained, high-intensity sound in a narrow beam over distances up to 3 km. Used by military forces, law enforcement, and maritime security for crowd dispersal, communication, and targeted harassment. Can exceed 162 dB at source; causes permanent hearing damage, tinnitus, vestibular disorders, and psychological trauma.",
+      "A directed-energy acoustic weapon manufactured by Genasys Inc. (formerly LRAD Corporation), capable of projecting sustained, high-intensity sound in a narrow beam over distances up to 3 km. Used by military forces, law enforcement, and maritime security for crowd dispersal, communication, and targeted harassment. Maximum specification: 162 dB SPL at source (LRAD 2000X); causes permanent hearing damage, tinnitus, vestibular disorders, and psychological trauma.",
     context:
-      "The LRAD was originally developed as a hailing device for US Navy vessels following the 2000 USS Cole bombing. Its use has since expanded dramatically: deployed by US law enforcement at the G20 Pittsburgh (2009), Ferguson (2014), Standing Rock (2016), and throughout the 2020 Black Lives Matter protests. Documented internationally by Israeli forces in the West Bank, by Myanmar military against protesters (2021), by French police during Gilets Jaunes, and by Hong Kong riot police (2019). At 'communication' settings (around 120 dB at 1m), it causes immediate pain and disorientation. At 'deterrent' settings (up to 162 dB), it constitutes a lethal weapon under some readings of international humanitarian law. Legal challenges have proliferated: Rauen v. City of Pittsburgh (2010) established that LRAD use could constitute Fourth Amendment violations; Ngo v. City of Los Angeles (2021) resulted in a settlement. The device identifies its operator on any pin map by the acoustic signature: steady-state directional tone typically between 2,100 and 3,100 Hz. Noisecatcher's 'acoustic_weapon' subcategory under Conflict zone is designed to capture these events.",
+      "The LRAD was originally developed as a hailing device for US Navy vessels following the 2000 USS Cole bombing. Its use has since expanded dramatically: deployed by US law enforcement at the G20 Pittsburgh (2009), Ferguson (2014), Standing Rock (2016), and throughout the 2020 Black Lives Matter protests. Documented internationally by Israeli forces in the West Bank, by Myanmar military against protesters (2021), by French police during Gilets Jaunes, and by Hong Kong riot police (2019). At 'communication' settings (around 120 dB at 1m), it causes immediate pain and disorientation — 120 dB marks the lower boundary of the pain zone, with individual thresholds ranging 120–140 dB. At maximum 'deterrent' settings (162 dB, per manufacturer specification for the LRAD 2000X), even brief unprotected exposure causes immediate permanent hearing damage. LRAD deployments have been examined under international humanitarian law proportionality and indiscriminate-effects provisions; Amnesty International and Human Rights Watch have documented serious injuries from LRAD use at protests. No binding IHL ruling or treaty provision categorically classifies LRADs as lethal weapons, but their use has been challenged under domestic constitutional law: Rauen v. City of Pittsburgh (2010) established that LRAD use could constitute Fourth Amendment violations; Ngo v. City of Los Angeles (2021) resulted in a settlement. The device identifies its operator on any pin map by the acoustic signature: steady-state directional tone typically between 2,100 and 3,100 Hz.",
     relatedDbThreshold: 120,
     sources: [
       "Genasys Inc., LRAD product specifications and operational manual",
@@ -655,7 +661,7 @@ export const ABECEDAIRE: AbecedaireEntry[] = [
     definition:
       "The use of acoustic memory — the recollection of sounds, echoes, durations, and rhythms — as forensic evidence in the absence of visual documentation or physical access to a site. Developed by Forensic Architecture in their investigation of Saydnaya Military Prison, Syria.",
     context:
-      "In 2016, Forensic Architecture interviewed survivors of Saydnaya Prison who had been blindfolded or kept in darkness throughout their detention. Unable to see the space, they had mapped it through sound: the height of ceilings measured by echo, the number of cells inferred from door rhythms, the proximity of guards gauged by footstep timing. Architects and acoustic engineers at FA translated this testimony into a 3D model, then used impulse response simulation to validate whether the acoustic properties of the reconstructed space matched the survivors' sonic memories. The result was an architectural reconstruction built entirely from ear witnessing — with no photographs, no satellite imagery, only the testimony of human bodies under extreme duress. The methodology has since been extended to other contexts where visual evidence is suppressed: solitary confinement, detention, forcible blindfolding at protests. For Noisecatcher, ear witnessing names a practice already embedded in the app's description fields and temporal pin status: when direct measurement is impossible — when you hear something but cannot stop and record — the disciplined documentation of what you heard, when, and where is still forensic evidence.",
+      "In 2016–2017, Forensic Architecture worked with Lawrence Abu Hamdan and Amnesty International to investigate Saydnaya Military Prison, Syria, where an estimated 13,000+ people were executed. Former detainees had been blindfolded or kept in total darkness. Unable to see the space, they had mapped it through sound: the height of ceilings measured by echo, the number of cells inferred from door rhythms, the proximity of guards gauged by footstep timing. Architects and acoustic engineers translated this testimony into a 3D model, then used impulse response simulation to validate whether the acoustic properties of the reconstructed space matched the survivors' sonic memories. The title 'The Missing 19dB' refers to the 19 dB drop in whisper volume documented across successive generations of prisoners — each cohort whispered 19 dB lower than their predecessors, driven by escalating terror and the absolute prohibition on sound. This 19 dB was acoustically reconstructed from survivor testimony, not measured in the field. It is one of the most powerful examples of earwitness methodology ever produced: a number derived entirely from the disciplined memory of people under extreme duress, used to document state crime. For Noisecatcher, ear witnessing names a practice already embedded in the app's description fields and temporal pin status: when direct measurement is impossible — when you hear something but cannot stop and record — the disciplined documentation of what you heard, when, and where is still forensic evidence.",
     sources: [
       "Forensic Architecture, 'Saydnaya: Inside a Syrian Torture Prison' (2016) — forensic-architecture.org/investigation/saydnaya",
       "Weizman, E., Forensic Architecture: Violence at the Threshold of Detectability (Zone Books, 2017)",
@@ -1127,7 +1133,7 @@ export const ABECEDAIRE: AbecedaireEntry[] = [
     term: "Aural Counterpublics",
     category: "social",
     definition: "Acoustic spaces — physical, mediated, or networked — in which marginalized communities produce, circulate, and contest sound outside the dominant public sphere. Derived from Nancy Fraser's critique of Habermas and Michael Warner's theory of publics, the concept names the sonic dimension of counter-public formation: the freedom to make noise on your own terms.",
-    context: "Nancy Fraser's 1990 critique of Habermas's public sphere identified the systematic exclusion of subordinate groups from the bourgeois public, and named the 'subaltern counterpublics' they formed as alternative spaces of deliberation. Warner extended this into media and textual circulation. Applied to sound, the aural counterpublic is the Black church, the Jamaican sound system, the pirate radio station, the protest chant, the noise music show in an abandoned factory, the field recording circulated on low-bandwidth community networks — all sites where communities produce a sonic presence on their own terms, outside the regime of the dominant soundscape. The concept has direct implications for noise documentation: the smartphone microphone, in this framing, is not only a measurement device but a tool for producing an alternative acoustic record — one that registers what official media do not. Radio With Palestine (RWP) demonstrates this explicitly: the project broadcasts live, unedited audio from political situations, producing what it calls a 'flat listening' — an omnidirectional, unedited document of the full acoustic context rather than the focused, curated audio of commercial broadcast. Noisecatcher's community map is a distributed aural counterpublic: a collectively produced acoustic record that cannot be edited, suppressed, or reframed by any single authority.",
+    context: "Nancy Fraser's 1990 critique of Habermas's public sphere identified the systematic exclusion of subordinate groups from the bourgeois public, and named the 'subaltern counterpublics' they formed as alternative spaces of deliberation. Warner extended this into media and textual circulation. Applied to sound, the aural counterpublic is the Black church, the Jamaican sound system, the pirate radio station, the protest chant, the noise music show in an abandoned factory, the field recording circulated on low-bandwidth community networks — all sites where communities produce a sonic presence on their own terms, outside the regime of the dominant soundscape. The concept has direct implications for noise documentation: the smartphone microphone, in this framing, is not only a measurement device but a tool for producing an alternative acoustic record — one that registers what official media do not. Radio With Palestine (RWP) demonstrates this explicitly: a distributed real-time audio archive that streams from solidarity protests and resistance contexts worldwide, in partnership with community radio stations across Palestine (including Radio Al Hara, Bethlehem), New York, Berlin, Amsterdam, Paris, Chile, and Greece. It produces what it calls 'flat listening' — an omnidirectional, unedited document of the full acoustic context of a political situation, distributed across a network that no single authority can suppress. Noisecatcher's community map is a distributed aural counterpublic: a collectively produced acoustic record that cannot be edited, suppressed, or reframed by any single authority.",
     sources: [
       "Fraser, N., 'Rethinking the Public Sphere: A Contribution to the Critique of Actually Existing Democracy' (Social Text, 1990)",
       "Warner, M., Publics and Counterpublics (Zone Books, 2002)",
@@ -1169,7 +1175,7 @@ export const ABECEDAIRE: AbecedaireEntry[] = [
     id: "mosquito-device",
     term: "Mosquito Device — High-Frequency Youth Dispersal",
     category: "legal",
-    definition: "A commercially manufactured electronic device that emits a continuous tone at approximately 17–18.5 kHz, a frequency range audible to children and young adults (roughly under 25 years) but inaudible to most adults over 30. Deployed in public spaces — shopfronts, transport hubs, parks, car parks — to make loitering physically uncomfortable for young people without triggering legal frameworks designed for targeted discrimination or assault.",
+    definition: "A commercially manufactured electronic device that emits a continuous tone at approximately 17.4 kHz, a frequency range audible to children and young adults (roughly under 25 years) but inaudible to most adults over 30. Deployed in public spaces — shopfronts, transport hubs, parks, car parks — to make loitering physically uncomfortable for young people without triggering legal frameworks designed for targeted discrimination or assault. The Council of Europe Parliamentary Assembly (2010, Doc. 12378) called for a ban, finding the device breaches ECHR Article 8 (right to private life) and Article 14 (non-discrimination by age).",
     context: "Developed by Compound Security Systems in the United Kingdom (2005), the Mosquito rapidly spread across Europe, the United States, and Australia. It is sold explicitly as a youth-dispersal tool: the marketing materials describe it as a way to 'move on teenagers.' The device operates entirely outside noise ordinance frameworks because it is inaudible to most adult enforcement officers and officials. It is also invisible to most noise monitoring tools that do not capture frequencies above 16 kHz. The device is legal in the UK and most of the EU; the European Parliament passed a non-binding resolution against it in 2010 (P7_TA(2010)0170), but member states have not generally prohibited it. The Council of Europe's Commissioner for Human Rights and multiple children's rights organisations have condemned it as a discriminatory use of sound to restrict the right to public space on the basis of age. In France, a 2013 campaign by Stop-Sifflet documented dozens of deployments in Parisian suburbs, concentrated in lower-income areas. The device exemplifies what Steve Goodman calls the 'ecology of fear': it does not physically harm — at the intensities typically used — but it makes space inhabitable only for those the operator chooses. Noisecatcher cannot detect the Mosquito with a standard smartphone microphone: consumer-grade MEMS microphones roll off sharply above 14–16 kHz. Detection requires a purpose-built bat detector or a studio condenser microphone. However, Noisecatcher can document the social geography of Mosquito deployment: a pin in the 'Harassment' category, with subcategory 'Intimidation / threatening behaviour' and a description noting the device's audible hiss and the affected age group, creates a civic record that can feed into advocacy campaigns and local authority complaints.",
     sources: [
       "Compound Security Systems, Mosquito product documentation (2005–present)",
@@ -1252,7 +1258,7 @@ export const ABECEDAIRE: AbecedaireEntry[] = [
     id: "acoustic-niche-hypothesis",
     term: "Acoustic Niche Hypothesis",
     category: "environmental",
-    definition: "Bernie Krause's hypothesis (1993) that in a healthy, undisturbed ecosystem, organisms evolve to occupy distinct acoustic niches — specific frequency bands and time windows — so that their communication signals do not interfere with those of other species, in the same way that species partition habitat resources. Chronic anthropogenic noise destroys this partitioning, forcing animals to alter calls, shift timing, or abandon territory.",
+    definition: "Bernie Krause's hypothesis (1993) that in a healthy, undisturbed ecosystem, organisms evolve to occupy distinct acoustic niches — specific frequency bands and time windows — so that their communication signals do not interfere with those of other species. Krause's broader framework divides the soundscape into geophony (non-biological natural sounds: wind, water, thunder), biophony (biological sounds), and anthrophony (human-generated sounds). The niche partitioning component is a hypothesis with supporting evidence in some taxa (insects, some bird communities) but contested in its universal form across all species.",
     context: "Krause developed the hypothesis from decades of field recording in pristine and degraded ecosystems. In a healthy recording, the spectrogram shows a structured 'acoustic orchestra': insects occupy high frequencies, birds claim mid-range, frogs and amphibians use specific temporal windows, marine mammals modulate their calls around geophysical events. The structure is not random — it represents millions of years of co-evolutionary acoustic competition and coordination. Anthropogenic noise — traffic, aviation, industrial machinery — introduces broadband energy that disrupts this structure. Animals respond: urban Great Tits in European cities have been documented shifting their songs to higher frequencies to avoid traffic masking. Urban corvids and parrots alter timing. Species that cannot adapt fall silent, migrate, or suffer reduced reproductive success. Krause's most striking demonstration: he recorded the Lincoln Meadow forest in the Sierra Nevada before and after a selective logging operation that removed only 15% of trees. The post-logging spectrogram showed near-total acoustic collapse despite minimal visual disturbance — the logging trucks and machinery had shattered the acoustic niche structure, and the species did not return. For Noisecatcher: a recording in a park or forest captures not just the human noise burden but the degree of acoustic niche compression. A spectrogram showing traffic noise flooding the mid-frequency bird band documents not only a public health problem but an ecological one. The NDSI score (biophony vs. anthrophony ratio) computed from the FFT data already captured during a session gives a quantitative measure of this compression.",
     sources: [
       "Krause, B., 'The Niche Hypothesis: A virtual symphony of animal sounds, the origins of musical expression and the health of habitats' (The Soundscape Newsletter, 1993)",
@@ -1345,6 +1351,326 @@ export const ABECEDAIRE: AbecedaireEntry[] = [
       "Goodman, S., Sonic Warfare: Sound, Affect, and the Ecology of Fear (MIT Press, 2010)",
     ],
     relatedTerms: ["Acoustic Triangulation", "Multi-Source Audio Synchronisation", "Ear Witnessing", "Acoustic Evidence — Chain of Custody", "Sonic Testimony", "Community-Owned Acoustic Observatory"],
+  },
+  {
+    id: "schafer-soundscape",
+    term: "R. Murray Schafer — Soundscape and World Soundscape Project",
+    category: "acoustic",
+    definition:
+      "Canadian composer R. Murray Schafer coined the term 'soundscape' and founded the World Soundscape Project (WSP) at Simon Fraser University in 1969 — the foundational institution of acoustic ecology as a field. His 1977 book The Tuning of the World (republished as The Soundscape: Our Sonic Environment and the Tuning of the World) remains the discipline's primary text. Schafer introduced 'keynote sounds' (background acoustic identity of a place), 'soundmarks' (acoustically distinctive local sounds equivalent to landmarks), and the distinction between 'hi-fi' (wide dynamic range, quiet background, individual sounds distinguishable) and 'lo-fi' soundscapes (urban noise compression that masks individual acoustic events).",
+    context:
+      "Schafer's intervention was fundamentally political: he argued that industrialisation had destroyed the acoustic balance of the natural and human world, and that the dominant soundscape of the 20th century — traffic, machinery, amplified speech — was a form of environmental violence that had been rendered invisible by habituation. The WSP produced the first systematic comparative soundscape documentation methodology, applied across five Canadian cities and later globally. The ISO 12913 series (2014–2022) built a formal international standard on Schafer's framework, defining soundscape as 'the acoustic environment as perceived, experienced, and/or understood by a person or people, in context' — a shift from physical sound levels to human perceptual experience. ISO 12913's 8-attribute circumplex model (eventful, vibrant, pleasant, calm, uneventful, monotonous, annoying, chaotic) is now the framework used by urban planners across Europe. For Noisecatcher: Schafer's framework explains why the app measures more than dB levels — it attempts to document the full acoustic context of a place and the political conditions that produced it.",
+    sources: [
+      "Schafer, R.M., The Tuning of the World (Knopf, 1977; republished as The Soundscape, Destiny Books, 1994)",
+      "World Soundscape Project — Simon Fraser University (1969–present)",
+      "ISO 12913-1:2014 / ISO 12913-2:2018 / ISO 12913-3:2019 — Acoustics: Soundscape",
+      "Truax, B. (ed.), Handbook for Acoustic Ecology (ARC Publications, 1978/1999)",
+    ],
+    relatedTerms: ["Acoustic Ecology", "Soundscape", "Acoustic Niche Hypothesis", "ISO 12913", "World Forum for Acoustic Ecology"],
+  },
+
+  {
+    id: "noise-type2-diabetes",
+    term: "Noise and Type 2 Diabetes",
+    category: "health",
+    definition:
+      "Emerging evidence links chronic exposure to traffic noise with increased risk of type 2 diabetes, independently of air pollution and socioeconomic factors. The proposed mechanism follows the cardiovascular pathway: chronic nocturnal noise-triggered cortisol and adrenaline release disrupts glucose metabolism and promotes insulin resistance over time.",
+    context:
+      "A Danish nationwide cohort study (Environmental Health Perspectives, 2021) found statistically significant associations between long-term road, rail, and aircraft noise exposure and incident type 2 diabetes, after controlling for air pollution and other confounders. The European Environment Agency's Environmental Noise in Europe 2025 report explicitly includes type 2 diabetes in its disease burden calculations for the first time, estimating 22,000 new cases per year in Europe attributable to transport noise. This makes diabetes the newest addition to the recognised health effects of noise — alongside cardiovascular disease, sleep disruption, childhood cognitive impairment, and tinnitus. The evidence base is still developing: it is stronger for road and rail noise than for aircraft noise, and the effect sizes are modest in individual studies. However, given the global scale of type 2 diabetes as a public health crisis, even small attributable fractions translate into large absolute numbers of cases.",
+    relatedDbThreshold: 55,
+    sources: [
+      "Danish nationwide cohort study — noise and type 2 diabetes (Environmental Health Perspectives, 2021) — PMC8638828",
+      "EEA, 'Environmental Noise in Europe 2025' — includes T2D in disease burden (22,000 cases/year in Europe)",
+      "Münzel et al., 'Environmental Noise and the Cardiovascular System' (JACC, 2018) — metabolic mechanism",
+    ],
+    relatedTerms: ["Cardiovascular Noise Effects", "Night Noise", "Dose–Response Relationship"],
+  },
+
+  {
+    id: "echr-hatton-noise-rights",
+    term: "ECHR Article 8 — Right to Quiet as a Human Right",
+    category: "legal",
+    definition:
+      "The European Court of Human Rights has established, through a series of cases beginning with Powell and Rayner v. UK (1990) and culminating in Hatton and Others v. United Kingdom (Grand Chamber, 2003), that states have positive obligations under ECHR Article 8 (right to respect for private and family life and the home) to take reasonable measures to protect individuals from severe noise pollution. This makes acoustic protection a justiciable human right in Council of Europe member states.",
+    context:
+      "Hatton v. UK (2003) concerned Heathrow Airport night flights. The applicants argued that noise from night flights disrupted their sleep and constituted a violation of Article 8. The Grand Chamber held that the UK government had failed to strike a fair balance between the economic interests of the country and the applicants' effective enjoyment of their right to a home and private life — establishing that noise from infrastructure can violate human rights. Earlier, López Ostra v. Spain (1994) established the principle that severe environmental pollution — including noise — can breach Article 8 even without threatening health directly. In India, the Supreme Court went further: Forum for Prevention of Environmental and Sound Pollution v. Union of India (2005) SCC 733 ruled that 'freedom from noise pollution is part of the right to life' under Article 21 of the Indian Constitution — one of the world's most significant constitutional noise rulings, resulting in a ban on firecracker use between 10pm and 6am. These cases establish that noise is not merely an aesthetic inconvenience but a violation of fundamental rights — the legal foundation for using Noisecatcher data in formal complaints and rights-based advocacy.",
+    sources: [
+      "Hatton and Others v. United Kingdom (Application 36022/97), ECtHR Grand Chamber, 8 July 2003",
+      "López Ostra v. Spain (Application 16798/90), ECtHR, 9 December 1994",
+      "Forum for Prevention of Environmental and Sound Pollution v. Union of India (2005) 5 SCC 733 — Indian Supreme Court",
+      "Council of Europe, Guide on Article 8 of the ECHR (updated 2022) — environmental noise section",
+    ],
+    relatedTerms: ["Right to Silence (Acoustic)", "Environmental Justice and Noise", "Noise as Political Economy (Attali)", "WHO Environmental Noise Guidelines"],
+  },
+
+  {
+    id: "us-noise-control-act",
+    term: "US Noise Control Act (1972) — and Its Defunding",
+    category: "legal",
+    definition:
+      "The US Noise Control Act of 1972 was the only comprehensive federal noise legislation in US history. It established the EPA Office of Noise Abatement and Control (ONAC), empowered the EPA to set noise emission standards for major sources (transportation, construction, motors), and required noise labelling on products. In 1981, the Reagan administration eliminated all federal funding for ONAC, effectively dismantling the federal noise regulatory framework. The Act remains technically on the books but is entirely unfunded and unenforced.",
+    context:
+      "The gutting of ONAC in 1981 was not a policy decision based on noise science — it was part of a broader deregulatory agenda. The consequence is that the United States, one of the world's largest producers of transportation infrastructure noise, has operated for 45 years without a functional federal noise regulatory system. Noise regulation in the US is fragmented across thousands of local ordinances of widely varying strength, with enforcement that is weakest in the communities most exposed. The American Public Health Association's 2022 policy brief on noise as a public health hazard explicitly calls for ONAC to be re-established and funded. The contrast with the EU's Environmental Noise Directive (2002/49/EC), which requires strategic noise mapping and action plans in all EU cities above 100,000 population, illustrates the scale of the US regulatory gap. For users of Noisecatcher in the United States: your data is building the evidentiary base that federal re-regulation will eventually require.",
+    sources: [
+      "Noise Control Act of 1972, Public Law 92-574, 42 U.S.C. §4901–4918",
+      "APHA Policy Brief, 'Noise as a Public Health Hazard' (2022)",
+      "EPA, 'History of the EPA Noise Program' — archive.epa.gov/noise",
+      "Casey et al., 'Race/Ethnicity, SES, Residential Segregation, and Noise Exposure in the Contiguous US' (EHP, 2017)",
+    ],
+    relatedTerms: ["Environmental Justice and Noise", "Strategic Noise Maps", "Environmental Noise Directive (END)", "WHO Environmental Noise Guidelines"],
+  },
+
+  {
+    id: "global-noise-burden-gap",
+    term: "Global Noise Burden — A Research Gap",
+    category: "environmental",
+    definition:
+      "There is no global burden of disease estimate for environmental (non-occupational) noise equivalent to the WHO/Europe 2011 report. The Global Burden of Disease study does not include environmental transportation noise as a disease risk factor. This is a structural absence: the communities bearing the heaviest noise burdens — in rapidly urbanising cities in South Asia, Southeast Asia, Sub-Saharan Africa, and Latin America — are the least represented in the global epidemiological literature.",
+    context:
+      "The WHO 2011 Burden of Disease from Environmental Noise report quantified at least 1 million DALYs lost annually from traffic noise in western Europe. The EEA 2025 update extends this to 1.3 million DALYs across Europe, including 73,000 premature deaths and 22,000 new T2D cases. These are Europe-only figures — there is no equivalent estimate for the Global South. For occupational noise-induced hearing loss, a 2025 Nature Scientific Reports study estimated 7.8 million DALYs globally in 2021 — with the highest burdens in East Asia, South Asia, Southeast Asia, and Eastern Sub-Saharan Africa — representing a 104% increase from 1990. Among the noisiest cities with documented research: Cairo averages 85–90 dB street noise and never drops below 70 dB (Egyptian NRC); Ho Chi Minh City has been placed among the world's loudest cities at 103 dB (UN-cited sources); São Paulo schools average 70.3 dB LAeq on weekdays (Nature 2026). Most Sub-Saharan African cities — Lagos, Nairobi, Kinshasa, Dakar, Addis Ababa — have no published peer-reviewed noise monitoring data. This gap is itself a form of acoustic injustice: the absence of data produces the appearance of absence of harm.",
+    sources: [
+      "WHO/Europe, 'Burden of Disease from Environmental Noise' (2011) — western EU only, 1 million DALYs",
+      "EEA, 'Environmental Noise in Europe 2025' — Europe, 1.3 million DALYs, 73,000 premature deaths",
+      "Global occupational noise burden, Nature Scientific Reports (2025) — 7.8 million DALYs globally",
+      "Egyptian National Research Center noise studies, Cairo (2007) — 85–90 dB average street noise",
+      "Accra Pathways Study (PMC7440835) — high-resolution noise measurement, Sub-Saharan Africa",
+      "São Paulo school noise study, Nature Scientific Reports (2026) — 70.3 dB LAeq median",
+    ],
+    relatedTerms: ["Environmental Justice and Noise", "Acoustic Colonialism", "WHO Environmental Noise Guidelines", "Strategic Noise Maps"],
+  },
+
+  {
+    id: "sonic-apartheid",
+    term: "Sonic Apartheid — Noise as Postcolonial Violence",
+    category: "social",
+    definition:
+      "A framework, developed by researcher Alexandra Downing Watkins at the University of Cape Town, that names noise pollution as a direct continuation of racial and colonial geography. In post-apartheid Cape Town, forced eviction and relocation policies displaced communities to peripheral Temporary Relocation Areas — where residents face extreme noise exposure from proximity to industrial infrastructure and transport corridors, with no political recourse. The sonic conditions of these spaces are inseparable from their racial and economic production.",
+    context:
+      "Blikkiesdorp ('Tin Can Town') was created as a Temporary Relocation Area by the Cape Town municipality to clear poor, predominantly Black and Coloured communities before the 2010 FIFA World Cup. Residents face elevated traffic noise, industrial noise, and the acoustic conditions of poverty — generators, overcrowding, inadequate sound insulation — alongside the absence of the acoustic amenities (green space, quiet residential streets, acoustic barriers) that characterise wealthier Cape Town neighbourhoods. Watkins's research combined community decibel readings and resident diary entries to document this acoustic dimension of post-apartheid spatial injustice. Blikkiesdorp is a case study, not an exception: the same pattern of sonic disadvantage following racial geography is documented in the United States (Casey et al. 2017; Collins et al. 2020), the United Kingdom (Hodgson et al. 2018), and across Latin American cities. The academic field of 'acoustic colonialism' — active in cultural theory and sound studies (Duke University Press, 2021; MAST special issue on Sound, Colonialism, and Power, 2021) — argues that the imposition of dominant acoustic environments on colonised peoples, and the erasure of indigenous soundscapes, is a structural feature of colonial and postcolonial violence that the noise-as-dB paradigm cannot fully capture.",
+    sources: [
+      "Watkins, A.D., 'Sonic Apartheid: Ecoracism, Apartheid Geographies and Noise Pollution in Cape Town's Blikkiesdorp' (UCT, 2020) — open.uct.ac.za/handle/11427/32488",
+      "Casey et al. (2017) — race/ethnicity and noise exposure, continental US (EHP)",
+      "Collins et al. (2020) — sonic injustice and transport noise, US national (Journal of Transport Geography)",
+      "MAST, 'Sound, Colonialism, and Power' special issue, Vol.2 No.2 (2021)",
+      "Duke University Press, 'Acoustic Colonialism: Acts of Mapuche Interference' (2021)",
+    ],
+    relatedTerms: ["Acoustic Colonialism", "Acoustic Racism / Sonic Justice", "Environmental Justice and Noise", "Gentrification & Acoustic Displacement", "Global Noise Burden — A Research Gap"],
+  },
+
+  // ── Book-research additions ──────────────────────────────────────────────────
+
+  {
+    id: "ontologie-vibratoire",
+    term: "Vibrational Ontology — Politics of Frequency",
+    category: "acoustic",
+    definition:
+      "A philosophical proposition that vibration is ontologically prior: all matter vibrates, and entities encounter one another through vibrational force before conscious perception. 'You need not hear a sound in order to feel it.' The politics of sound is therefore a politics of frequency — who controls which vibrations colonise which bodies and spaces.",
+    context:
+      "Developed by Steve Goodman in Sonic Warfare (MIT Press, 2010), this ontology dissolves the boundary between heard sound and felt vibration — between music and noise, art and weapon. It explains why infrasound, surveillance drone hum, commercial sonic branding, and acoustic weapons operate through and below the threshold of consciousness: the body registers what the ear cannot identify or name. Goodman names several sub-operations: 'audio virology' (sound spreading infectiously through communities, bypassing rational resistance); 'affective tonality' (the mood or atmosphere produced by sustained frequency regimes — the dread of a low drone, the anxiety of a persistent alarm); and the 'military-entertainment complex' (the structural porosity between military sonic technology and commercial culture — tape decks, loudspeakers, and VHF developed for warfare were repurposed into entertainment, and entertainment technologies feed back into military deployment). For NoiseCatcher: a decibel reading captures only a fraction of what the body absorbs — the sub-sonic spectrum and the full vibrational continuum of the urban environment remain largely unmeasured by smartphones.",
+    sources: [
+      "Goodman, S., Sonic Warfare: Sound, Affect, and the Ecology of Fear (MIT Press, 2010)",
+    ],
+    relatedTerms: ["Acoustic Weapons / LRAD", "Infrasound", "Pain Threshold", "Ecology of Fear"],
+  },
+
+  {
+    id: "ecology-of-fear",
+    term: "Ecology of Fear — Sound as Territorial Control",
+    category: "social",
+    definition:
+      "An atmospheric condition in which sound is deployed to produce a diffuse affective tonality of dread, dislocation, and permanent surveillance — without direct physical contact. The sonic environment itself becomes an apparatus of territorial control.",
+    context:
+      "Steve Goodman coined this term in Sonic Warfare (MIT Press, 2010) to describe how states, military forces, and commercial actors manage populations through management of the vibrational atmosphere. Documented instances include: sonic booms over Gaza (Israeli Air Force supersonic overflights at night, producing shockwaves that traumatise civilian populations without striking infrastructure, documented by Human Rights Watch 2005); LRAD systems deployed against protesters at Pittsburgh G20 (2009) and Ferguson (2014); the Mosquito Device (17.4 kHz) as a public-space exclusion device targeting youth; and continuous surveillance drone hum producing chronic anxiety in occupied territories. The distinction between an acoustic weapon and an everyday sonic environment is deliberately blurred — the aim is precisely this ambiguity: a threat that cannot be named, therefore cannot be prosecuted. The ecology of fear operates at the intersection of Goodman's 'vibrational ontology' and Volcler's observation that 'ears don't have lids.'",
+    sources: [
+      "Goodman, S., Sonic Warfare (MIT Press, 2010)",
+      "Volcler, J., Extremely Loud: Sound as a Weapon (The New Press, 2013)",
+      "Human Rights Watch, 'Deafening Whispers: Gaza Sonic Booms' (2005)",
+    ],
+    relatedDbThreshold: 85,
+    relatedTerms: ["Acoustic Weapons / LRAD", "Mosquito Device", "Vibrational Ontology", "Psychoacoustic Annoyance"],
+  },
+
+  {
+    id: "acoustic-colonialism-mapuche",
+    term: "Acoustic Colonialism — Mapuche and Indigenous Contexts",
+    category: "social",
+    definition:
+      "A regime of massive, iterative, and invasive linguistic, ambient, social, and technological mechanisms that alter and disrupt the lifeways of an Indigenous territory. Three dimensions: (1) sociolinguistic domination — the marginalisation of Indigenous languages (linguicide); (2) media and technology systems — colonial representation through radio and digital platforms; (3) industrial and infrastructural noise imposed on Indigenous lands.",
+    context:
+      "Coined by Luis E. Cárcamo-Huechante in Acoustic Colonialism: Acts of Mapuche Interference (Duke UP, 2022), developed through the Mapuche case in Chile. The Chilean settler state exercised sonic domination through: Hispanicisation of toponyms (e.g., 'Tralcao' — the phonetic Spanish rendering of 'Tralkawe', meaning 'place of the thunderstorm' in Mapudungun — an act of acoustic and territorial erasure); marginalisation of Mapudungun in media; and industrial noise from forestry equipment, airports, and state weaponry on Mapuche lands. Against this regime, Mapuche acts of sonic interference — Wixage Anai radio (Santiago, 1993), Mapudungun poetry, Mapuche rap group Wechekeche Ñi Trawün — constitute sonic resurgence: interfering in the colonial frequency rather than simply opposing it. The concept extends beyond the Americas: it names any regime in which dominant sonic practices erase and invisibilise non-dominant acoustic expression. Compare: the 'colonial ear' — the perceptual apparatus trained by two centuries of settler media to mishear or fail to hear Indigenous voices; and 'allkütun' — the Mapuche practice of attentive listening as decolonial counter-practice.",
+    sources: [
+      "Cárcamo-Huechante, L.E., Acoustic Colonialism: Acts of Mapuche Interference (Duke UP, 2022)",
+      "Friel, B., Translations (1980) — comparative case of Irish linguistic-acoustic disinheritance",
+      "MAST, 'Sound, Colonialism, and Power' special issue (2021)",
+    ],
+    relatedTerms: ["Sonic Apartheid", "Environmental Justice and Noise", "Co-Listening", "Allkütun"],
+  },
+
+  {
+    id: "allkutun-listening",
+    term: "Allkütun — Attentive Listening as Decolonial Practice",
+    category: "social",
+    definition:
+      "A Mapuche concept meaning 'to listen attentively' — a form of listening that resists the colonial ear by dwelling on what dominant perceptual practices have been trained to ignore. At once an aesthetic and a political counter-practice.",
+    context:
+      "Cárcamo-Huechante centres allkütun as a decolonial methodology in Acoustic Colonialism (Duke UP, 2022): listening to what has been systematically rendered inaudible — the Mapuche language, the sounds of Indigenous resistance, the noise of colonial violence on Indigenous lands. Allkütun is distinct from Schaeffer's acousmatic listening or Pauline Oliveros's Deep Listening, though all three share a resistance to the regime of inattention. For NoiseCatcher: allkütun names what the app seeks to produce in its users — a sustained attention to the acoustic environment as a site of power and resistance, a willingness to hear what regulatory ears have been trained to filter out. The Mapuche practice resonates with Budhaditya Chattopadhyay's 'co-listening' (Sound Practices in the Global South, Palgrave, 2022) as a shared framework for decolonial acoustic attention.",
+    sources: [
+      "Cárcamo-Huechante, L.E., Acoustic Colonialism (Duke UP, 2022)",
+      "Oliveros, P., Deep Listening: A Composer's Sound Practice (iUniverse, 2005)",
+    ],
+    relatedTerms: ["Acoustic Colonialism", "Colonial Ear", "Co-Listening", "Deep Listening"],
+  },
+
+  {
+    id: "co-listening",
+    term: "Co-Listening — Reciprocal, Anti-Extractive Acoustic Research",
+    category: "social",
+    definition:
+      "A research and action practice grounded in reciprocity: listening with communities rather than extracting sonic data from them. Co-listening refuses the expert-listener position that harvests, analyses, and returns knowledge; it demands a mutual conversation in which practitioner knowledge is epistemically equal to academic knowledge.",
+    context:
+      "Developed by Budhaditya Chattopadhyay in Sound Practices in the Global South (Palgrave, 2022) as a critique of what he calls 'the exoticising listening ear' of canonised sound scholarship — a fundamentally colonial posture that hears non-Western sonic practices as exotic raw material for Western theoretical frameworks, not as sophisticated aesthetic and political systems in their own right. Co-listening involves researcher self-reflexivity, an acknowledgement of one's own implication in systems that silence certain voices, and a commitment to shared control over interpretation. The book documents practitioners from South Asia, Africa, the Middle East, and Latin America expressing 'collective desires to resist colonial models of listening by expressing themselves in terms of their arts and craft.' For NoiseCatcher: co-listening names the ethical positioning the app seeks to instantiate — data stays with communities, analysis is conducted with them, the interpretation is not delegated to a technical class.",
+    sources: [
+      "Chattopadhyay, B., Sound Practices in the Global South (Palgrave, 2022)",
+      "Smith, L.T., Decolonizing Methodologies (Zed Books, 1999)",
+    ],
+    relatedTerms: ["Colonial Ear", "Allkütun", "Acoustic Colonialism", "Compassionate Listening"],
+  },
+
+  {
+    id: "sensory-extinction",
+    term: "Sensory Extinction — the Silencing of Sonic Diversity",
+    category: "environmental",
+    definition:
+      "The progressive global erasure of sonic diversity — distinct from species extinction, though intimately linked. Sensory extinction designates simultaneously the impoverishment of soundscapes (fewer species, fewer acoustic behaviours, reduced spectral richness) and the correlative diminishment of human capacity for attentive perception of a rich sonic world.",
+    context:
+      "David George Haskell, in Sounds Wild and Broken (Viking, 2022), situates sensory extinction within a 540-million-year evolutionary history of sonic creativity. The COVID-19 pandemic provided a natural experiment: White-crowned Sparrows in San Francisco altered their songs within weeks of the reduction in human noise — softer songs, lower frequencies — demonstrating real-time acoustic adaptation. The four dimensions of the acoustic crisis: habitat destruction in tropical forests, silencing animal communication; industrial ocean noise (shipping, sonar, drilling) disrupting cetacean communication across ocean basins; urban noise distributed along racial and class lines; and progressive loss of human listening capacity. Haskell documents that US federal highway programmes carried a 90% cost-share specifically for routing highways through low-income and minority neighbourhoods — an institutional mechanism producing sonic inequity as structural racism. The burdens of sensory extinction — impaired learning, cardiovascular disease, increased mortality — are 'unjustly distributed among lower income and minority neighbourhoods.'",
+    sources: [
+      "Haskell, D.G., Sounds Wild and Broken (Viking, 2022)",
+      "Derryberry et al., 'Singing in a silent spring: Birds respond to a temporary human-induced noise reduction during the COVID-19 shutdown' (Science, 2020)",
+    ],
+    relatedDbThreshold: 60,
+    relatedTerms: ["Acoustic Niche Hypothesis", "Ecoacoustic Indices", "Environmental Justice and Noise", "Soundscape"],
+  },
+
+  {
+    id: "signal-noise-cultural",
+    term: "Signal / Noise — a Cultural Operation",
+    category: "acoustic",
+    definition:
+      "The boundary between meaningful signal and unwanted noise is not a natural acoustic fact: it is a cultural operation — a filtering technique that reflects and reproduces power relations. What is classified as 'noise' is the result of a political choice, contestable and historically variable.",
+    context:
+      "Bernhard Siegert argues in Cultural Techniques (Fordham UP, 2015) that 'media' are not things but operations — chains of practice that produce and maintain the distinctions a culture depends on. The regulatory standard (e.g., the WHO's 53 dB Lden road traffic limit) is a filter: it defines what counts as a nuisance and what does not. Choosing that threshold is a political act. The history of noise standards is the history of who had the power to place the filter. The filter does not merely remove irrelevant content — it constitutes the distinction between relevant and irrelevant in the first place. For NoiseCatcher: the app does not simply apply existing filters — it documents the gap between what official filters let through and what communities actually experience. Regulatory thresholds are one political choice; the app enables communities to make their own threshold visible.",
+    sources: [
+      "Siegert, B., Cultural Techniques: Grids, Filters, Doors, and Other Articulations of the Real (Fordham UP, 2015)",
+    ],
+    relatedTerms: ["Frequency Weighting (dB(A)/dB(C)/dB(Z))", "WHO Environmental Noise Guidelines", "Acoustic Colonialism"],
+  },
+
+  {
+    id: "railway-shock",
+    term: "Railway Shock — Historical Precedent for Chronic Vibratory Harm",
+    category: "health",
+    definition:
+      "The pathology caused by cumulative exposure to the continuous vibrations of railway travel, recognised in British medical literature from the mid-19th century as a public health risk. The first documented case of physiological damage caused by continuous, imperceptible vibration — the direct historical precursor of modern chronic acoustic trauma.",
+    context:
+      "Shelley Trower documents in Senses of Vibration (Continuum, 2012) how The Lancet published a series of articles treating railway vibration as a public health hazard in the 1860s–1880s. The central finding: continuous, unfelt vibration was more dangerous than the jolts of horse-drawn travel precisely because its cumulative effect went unregistered by consciousness — passengers absorbed 'upwards of 20,000 movements per journey' without awareness. This prefigures exactly what contemporary environmental noise research establishes: the cumulative effects of continuous background noise (traffic, industry) on cardiovascular health are more damaging than occasional acoustic peaks, because they do not trigger a conscious adaptive response. Trower also shows that vibration theories underpinned 19th-century understandings of 'nervous illness' — neurasthenia, hysteria, and the 'sensitive body' were understood as pathological over-responsiveness to the vibrations of industrial modernity. The body that suffers from sound is not weak; it is accurately registering its environment. For NoiseCatcher: the historical argument for measuring ambient noise continuously, not just peaks.",
+    sources: [
+      "Trower, S., Senses of Vibration: A History of the Pleasure and Pain of Sound (Continuum, 2012)",
+      "The Lancet, series on railway travel and nervous health (1860s–1880s)",
+    ],
+    relatedTerms: ["Cardiovascular Noise Effects", "Night Noise", "Dose-Response Relationship", "Vibrational Ontology"],
+  },
+
+  {
+    id: "ma-interval",
+    term: "Ma (間) — the Interval as Inhabited Space",
+    category: "acoustic",
+    definition:
+      "A Japanese concept designating the interval — the pause, the gap between sounds — as a charged, inhabited space, not mere absence. Ma is not silence: it is the qualitative duration between sonic events, the place where acoustic meaning deposits and prepares itself.",
+    context:
+      "Toru Takemitsu writes in Confronting Silence (Fallen Leaf Press, 1995): 'Sound, in its ultimate expressiveness, being constantly refined, approaches the nothingness of that wind in the bamboo grove.' Takemitsu refuses the Western opposition between silence (absence, death) and sound (presence, life) — in Japanese thought, both coexist in ma. The productive interval is neither empty nor full in the Western sense; it is the relational space that gives the surrounding sounds their meaning. For NoiseCatcher: measurement instruments do not capture ma — the intervals between peaks, the relative silences within a noisy environment, are precisely what noise-exposed communities seek and are denied. Measuring ma — the duration and quality of quiet intervals — is as important as measuring peak levels. ISO 12913 soundscape methodology begins to approach this through its 8-attribute circumplex (calm, pleasant) but ma names a deeper perceptual quality that no metric yet captures.",
+    sources: [
+      "Takemitsu, T., Confronting Silence: Selected Writings (Fallen Leaf Press, 1995, trans. Kakudo & Glasow)",
+      "Pilgrim, R.B., 'Intervals (Ma) in Space and Time: Foundations for a Religio-Aesthetic Paradigm in Japan' (History of Religions, 1986)",
+    ],
+    relatedTerms: ["Soundscape", "Deep Listening", "ISO 12913 Soundscape Standard", "Psychoacoustic Annoyance"],
+  },
+
+  {
+    id: "indeterminacy-urban",
+    term: "Indeterminacy — the City as Unwritten Score",
+    category: "acoustic",
+    definition:
+      "Borrowing from John Cage, indeterminacy designates the condition of a sonic event whose outcome cannot be fully predicted or controlled by any single author. Applied to the city: the urban soundscape is an indeterminate score — no one composed it, no one controls its outcome.",
+    context:
+      "John Cage demonstrated indeterminacy through 4'33'' (1952): during four minutes and thirty-three seconds of performative silence, the audience hears the sounds of the environment — coughs, rain, ventilation, traffic — as music. Earlier, in Harvard's anechoic chamber, Cage heard two sounds: a low one (his circulatory system) and a high one (his nervous system) — proof that there is no absolute silence, only sounds not yet listened to. His central proposition: 'I have nothing to say and I am saying it and that is poetry' (Silence, 1961). For NoiseCatcher: every measurement captures a fragment of this indeterminate score; the app is an instrument for reading the unwritten score of the city. The citizen who measures noise is not extracting data from a passive environment — they are, in Cage's sense, attending to the world's continuous performance.",
+    sources: [
+      "Cage, J., Silence: Lectures and Writings (Wesleyan UP, 1961)",
+      "Cage, J., 4'33'' (score, 1952, C.F. Peters)",
+    ],
+    relatedTerms: ["Ma (間)", "Soundscape", "Deep Listening", "Schafer — Soundscape"],
+  },
+
+  {
+    id: "citizen-sonic-archive",
+    term: "Citizen Sonic Archive — Testimony, Document, and Lived Fiction",
+    category: "social",
+    definition:
+      "A citizen's recording of an acoustic environment is not a neutral document: it is a partial, situated, re-lived archival object that carries the memory, interpretation, and lived experience of its author. The citizen sonic archive is simultaneously evidence and testimony.",
+    context:
+      "Daniela Cascella proposes in En Abîme: Listening, Reading, Writing (Zero Books, 2012) an archive that is also an 'archival fiction' — not a passive repository but a constellation of fragments that are 'not only reinterpreted but also lived and re-lived.' This tension — between the rigour of the document and the subjectivity of testimony — is precisely what NoiseCatcher navigates. The decibel measurement is the objectivation; the carnet note, the pin description, the voice recording are the lived fiction. Together they constitute the archive. Separately, neither suffices as evidence: a measurement without context is a number; a testimony without measurement is a claim. The legal concept of 'best evidence' is not the most objective but the most complete — the document that combines calibrated data and situated witness. The citizen sonic archive is also implicitly an act of counter-documentation: it records what official archives and strategic noise maps systematically omit.",
+    sources: [
+      "Cascella, D., En Abîme: Listening, Reading, Writing: An Archival Fiction (Zero Books, 2012)",
+      "ISO/IEC 27037:2012 — digital evidence guidelines",
+      "LaBelle, B., Sonic Agency (Goldsmiths Press, 2018)",
+    ],
+    relatedTerms: ["Acoustic Notebooks (Carnets)", "Chain of Custody", "Environmental Justice and Noise", "Co-Listening"],
+  },
+
+  {
+    id: "urban-acupuncture-acoustic",
+    term: "Urban Acupuncture — Data-Driven Targeted Intervention",
+    category: "environmental",
+    definition:
+      "An urban intervention strategy that uses data mapping to identify precisely located pressure points for high-leverage, small-scale actions — too small for megaprojects, but numerous and well-distributed enough to transform a city's resilience cumulatively. Against top-down planning: acupuncture, not surgery.",
+    context:
+      "Nicholas de Monchaux, in Local Code: 3659 Proposals About Data, Design, and the Nature of Cities (Princeton Architectural Press, 2016), used GIS to identify 3,659 abandoned municipal parcels in San Francisco — sites that had fallen out of the formal land system — and produced 3,659 site-specific intervention proposals: stormwater management, greening, shared spaces. Each was adapted to its specific context; none was identical to another. The method combines open data and local knowledge; the result is a distributed evidence base for granular urban change. Acoustic urban acupuncture would identify noise pressure points at precisely located high-impact sites — identified through citizen noise data — and target specific interventions: acoustic barriers, street trees, reclassification of road surface, rezoning of industrial activity. The legal and social abandonment of noise-affected sites parallels the way these communities are 'abandoned' by regulatory systems that measure major sources but miss local accumulations.",
+    sources: [
+      "de Monchaux, N., Local Code: 3659 Proposals About Data, Design, and the Nature of Cities (Princeton Architectural Press, 2016)",
+      "Lerner, J., Urban Acupuncture (Island Press, 2014)",
+    ],
+    relatedTerms: ["Strategic Noise Maps", "Environmental Justice and Noise", "Acoustic Counter-Mapping", "Global Noise Burden — A Research Gap"],
+  },
+
+  {
+    id: "acoustic-bifurcation",
+    term: "Bifurcation — the Irreversible Acoustic Threshold",
+    category: "health",
+    definition:
+      "The critical point in a far-from-equilibrium system where a fluctuation — even small — can trigger an irreversible change of state: either toward a new, more resilient order or toward disintegration. In acoustic context: the moment when a community's citizen noise documentation tips into systemic advocacy — or when a body's noise exposure tips past the threshold of irreversible harm.",
+    context:
+      "Ilya Prigogine and Isabelle Stengers demonstrated in Order Out of Chaos (Bantam, 1984) that complexity and order emerge not from stable equilibrium but far from it, through amplification of fluctuations. A noise-exposed community is a dissipative system far from equilibrium: it maintains its organisation by absorbing disruptive flows, but it can tip. Irreversibility is central — acoustic damage (hearing loss, cardiovascular sequelae, altered animal behaviour) does not reverse. The COVID-19 pandemic showed that when human noise fell, bird songs changed within weeks; they do not automatically revert when noise resumes. The arrow of time in acoustics runs in one direction: prevention is worth immeasurably more than remediation. For the EEA, this argument justifies not the 73,000 premature deaths per year as acceptable externalities but as tipping-point evidence that the system has already bifurcated in the wrong direction.",
+    sources: [
+      "Prigogine, I. & Stengers, I., Order Out of Chaos: Man's New Dialogue with Nature (Bantam, 1984)",
+      "EEA, Environmental Noise in Europe 2025",
+    ],
+    relatedTerms: ["Cardiovascular Noise Effects", "Acoustic Trauma", "Noise-Induced Hearing Loss (NIHL)", "Sensory Extinction"],
+  },
+
+  {
+    id: "acoustic-liberty",
+    term: "Acoustic Liberty — Negative and Positive",
+    category: "legal",
+    definition:
+      "Noise pollution violates two forms of freedom simultaneously. Negative liberty (freedom from): the noise imposed by infrastructure or an operator constitutes an external interference with your living space. Positive liberty (freedom to): the capacity to realise oneself and participate in collective life — destroyed by chronic sleep deprivation, impaired concentration, and the degradation of spaces for public conversation.",
+    context:
+      "Isaiah Berlin, 'Two Concepts of Liberty' (1958), distinguished these freedoms to show their conflict is irreducible — both cannot be maximised simultaneously. In acoustic context, this means that sonic use conflicts — industry vs. residents, airport vs. neighbourhood, nightclub vs. neighbours — are genuine value conflicts, not technical problems. Berlin's value pluralism implies there is no algorithm for resolving them — only political decisions. This grounds NoiseCatcher's advocacy framing: the app provides data; the political decision remains human and must be claimed as such. The ECHR Article 8 jurisprudence (Hatton v. UK, Grand Chamber, 2003) operationalises the negative liberty claim at European law: states have positive obligations to protect residents from severe noise as a condition of the right to a home. India's Supreme Court (2005) went further, grounding freedom from noise in the constitutional right to life itself.",
+    sources: [
+      "Berlin, I., 'Two Concepts of Liberty' (in Four Essays on Liberty, Oxford UP, 1969)",
+      "Baum, B. & Nichols, R. (eds.), Isaiah Berlin and the Politics of Freedom (Routledge, 2013)",
+      "Hatton and Others v. United Kingdom (ECtHR Grand Chamber, 2003)",
+    ],
+    relatedTerms: ["Right to Quiet (ECHR Article 8)", "Environmental Justice and Noise", "WHO Environmental Noise Guidelines", "Signal/Noise — a Cultural Operation"],
   },
 ];
 

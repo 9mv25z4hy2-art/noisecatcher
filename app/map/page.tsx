@@ -3,7 +3,7 @@
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import dynamic from "next/dynamic";
 import { useState, useCallback, useEffect } from "react";
-import { Clock, HeartPulse, FileText, BarChart2, TrendingUp, Download, X, Plus, Minus, LocateFixed, MapPinPlus } from "lucide-react";
+import { Clock, HeartPulse, FileText, BarChart2, TrendingUp, Download, X, Plus, Minus, LocateFixed, MapPinPlus, Mic, Map as MapIcon, BookOpen, Info, Zap, BookMarked } from "lucide-react";
 import type { NoiseCategory, NoisePin } from "@/lib/pins";
 import type { MapControls } from "@/components/map/LeafletMap";
 import { useI18n } from "@/lib/i18n/context";
@@ -44,9 +44,27 @@ export default function MapPage() {
   const { t } = useI18n();
   const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
 
+  // Window-level touchend capture — fires before MapLibre's non-passive listeners.
+  // Detects taps on the map-page nav and navigates via window.location.href,
+  // bypassing React routing entirely.
+  useEffect(() => {
+    function onTouchEnd(e: TouchEvent) {
+      const touch = e.changedTouches[0];
+      if (!touch) return;
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (!el) return;
+      const link = el.closest('a[data-map-nav]') as HTMLAnchorElement | null;
+      if (!link?.href) return;
+      window.location.href = link.href;
+    }
+    window.addEventListener("touchend", onTouchEnd, { capture: true });
+    return () => window.removeEventListener("touchend", onTouchEnd, { capture: true });
+  }, []);
+
   useEffect(() => {
     loadReports().then(setAllReports);
   }, []);
+
 
   useEffect(() => {
     loadPins().then((all) => {
@@ -98,8 +116,9 @@ export default function MapPage() {
   }
 
   return (
+    <>
     <ErrorBoundary>
-    <div className="relative flex-1 flex flex-col" style={{ minHeight: "calc(100vh - 120px)", ["--nav-safe" as string]: "calc(52px + env(safe-area-inset-bottom))" }}>
+    <div className="relative">
 
       <FilterBar
         category={filterCategory}
@@ -118,7 +137,7 @@ export default function MapPage() {
         onCommunityCategory={setCommunityCategory}
       />
 
-      <div className="flex-1 min-h-0" style={{ minHeight: 400 }}>
+      <div className="nc-map-canvas">
         <LeafletMap
           filterCategory={filterCategory}
           filterDb={filterDb}
@@ -134,7 +153,7 @@ export default function MapPage() {
 
       {/* ── Left cluster: analysis + export (contextual, bottom-left) ── */}
       {(pinCount > 0 || hasGpsReports) && (
-        <div className="fixed z-[1000] flex flex-col gap-2 items-start" style={{ bottom: "calc(env(safe-area-inset-bottom) + 68px)", left: "calc(env(safe-area-inset-left) + 16px)" }}>
+        <div className="fixed z-[1000] flex flex-col gap-2 items-start nc-ctrl-b nc-ctrl-l">
 
           {/* Export icon button + overflow submenu */}
           {pinCount > 0 && (
@@ -280,8 +299,8 @@ export default function MapPage() {
 
         return trendReports.length >= 2 ? (
           <div
-            className="absolute left-16 right-16 z-[1000] rounded-xl px-4 py-3"
-            style={{ bottom: "calc(env(safe-area-inset-bottom) + 68px)", background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)", maxWidth: 380 }}
+            className="fixed left-16 right-16 z-[1000] rounded-xl px-4 py-3"
+            style={{ bottom: "calc(var(--nc-nav-bottom) + 68px)", background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)", maxWidth: 380 }}
           >
             <div className="flex items-center justify-between mb-2">
               <span className="te-label text-white/50 uppercase tracking-wider text-[10px]">
@@ -293,8 +312,8 @@ export default function MapPage() {
           </div>
         ) : (
           <div
-            className="absolute left-16 z-[1000] rounded-xl px-4 py-3"
-            style={{ bottom: "calc(env(safe-area-inset-bottom) + 68px)", background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)" }}
+            className="fixed left-16 z-[1000] rounded-xl px-4 py-3"
+            style={{ bottom: "calc(var(--nc-nav-bottom) + 68px)", background: "var(--nc-map-overlay)", border: "1px solid var(--nc-border-mid)" }}
           >
             <span className="te-label text-white/30 text-[10px]">Record at least 2 sessions to see a trend.</span>
             <button onClick={() => setShowTrend(false)} className="te-label text-white/30 hover:text-white/70 ml-3 transition-colors"><X className="w-3 h-3" /></button>
@@ -321,8 +340,8 @@ export default function MapPage() {
       {/* Export error toast */}
       {exportError && (
         <div
-          className="absolute left-4 z-[1001] px-3 py-2 rounded-lg text-xs text-red-400"
-          style={{ bottom: "calc(env(safe-area-inset-bottom) + 180px)", background: "var(--nc-map-overlay)", border: "1px solid rgba(239,68,68,0.4)" }}
+          className="fixed left-4 z-[1001] px-3 py-2 rounded-lg text-xs text-red-400"
+          style={{ bottom: "calc(var(--nc-nav-bottom) + 180px)", background: "var(--nc-map-overlay)", border: "1px solid rgba(239,68,68,0.4)" }}
         >
           {exportError}
         </div>
@@ -344,15 +363,14 @@ export default function MapPage() {
         <button
           onClick={mapControls.gpsPin}
           aria-label={t.map_gps_me}
-          className="fixed right-4 z-[1000] w-11 h-11 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95"
-          style={{ bottom: "calc(env(safe-area-inset-bottom) + 68px)", background: "var(--nc-text)", color: "var(--nc-bg)" }}
+          className="fixed z-[1000] w-11 h-11 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95 nc-ctrl-b nc-ctrl-r"
+          style={{ background: "var(--nc-text)", color: "var(--nc-bg)" }}
         >
           <MapPinPlus className="w-5 h-5" strokeWidth={1.75} />
         </button>
         <div
-          className="fixed right-4 z-[1000] flex flex-col rounded-xl overflow-hidden shadow-lg"
+          className="fixed z-[1000] flex flex-col rounded-xl overflow-hidden shadow-lg nc-ctrl-bz nc-ctrl-r"
           style={{
-            bottom: "calc(env(safe-area-inset-bottom) + 128px)",
             background: "var(--nc-bg)",
             border: "1px solid var(--nc-border-mid)",
           }}
@@ -372,5 +390,45 @@ export default function MapPage() {
       </>
     )}
     </ErrorBoundary>
+
+    {/* ── Map-page mobile nav ─────────────────────────────────────────────────
+        Rendered here (not in layout Nav) so it is completely outside MapLibre's
+        DOM subtree and React's layout event delegation. Plain <a> tags +
+        window.location.href bypass router.push() and any touch capture by MapLibre.
+        The layout Nav hides its own mobile nav on /map to avoid duplicates.      */}
+    {(() => {
+      const navLinks = [
+        { href: "/meter",      Icon: Mic,        label: t.nav_meter },
+        { href: "/map",        Icon: MapIcon,    label: t.nav_map },
+        { href: "/abecedaire", Icon: BookOpen,   label: t.nav_abecedaire },
+        { href: "/act",        Icon: Zap,        label: t.nav_act },
+        { href: "/carnets",    Icon: BookMarked, label: t.nav_carnets },
+        { href: "/about",      Icon: Info,       label: t.nav_about },
+      ];
+      return (
+        <nav
+          className="sm:hidden fixed bottom-0 inset-x-0 z-[9999] backdrop-blur border-t flex"
+          style={{ background: "var(--nc-nav-bg)", borderColor: "var(--nc-border)", paddingBottom: "env(safe-area-inset-bottom)", touchAction: "manipulation" }}
+          aria-label="Mobile navigation"
+        >
+          {navLinks.map(({ href, Icon, label }) => (
+            <a
+              key={href}
+              href={href}
+              data-map-nav="1"
+              aria-current={href === "/map" ? "page" : undefined}
+              className="flex-1 flex flex-col items-center gap-1 py-3 min-h-[52px] justify-center"
+              style={{ color: href === "/map" ? "var(--nc-text)" : "var(--nc-text-3)", textDecoration: "none", touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
+              onClick={(e) => { e.preventDefault(); window.location.href = href; }}
+              onTouchEnd={(e) => { e.preventDefault(); window.location.href = href; }}
+            >
+              <Icon className="w-5 h-5" aria-hidden="true" />
+              <span className="text-[9px] tracking-widest uppercase" style={{ fontFamily: "var(--font-display)" }}>{label}</span>
+            </a>
+          ))}
+        </nav>
+      );
+    })()}
+    </>
   );
 }
