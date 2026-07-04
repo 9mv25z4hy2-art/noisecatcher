@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Noisecatcher — Instagram Posters</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,700;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --c-green:  #22c55e;
+  --c-amber:  #eab308;
+  --c-orange: #f97316;
+  --c-red:    #ef4444;
+  --c-violet: #7c3aed;
+  --c-bg:     #0a0a0a;
+  --c-text:   #ededed;
+}
+
+html, body {
+  background: #111;
+  font-family: 'IBM Plex Mono', monospace;
+  -webkit-font-smoothing: antialiased;
+  padding: 40px 20px;
+}
+
+h1 {
+  color: rgba(255,255,255,0.2);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-weight: 400;
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+/* Each card is 1:1, max 640px wide */
+.card {
+  position: relative;
+  width: min(640px, 100vw - 40px);
+  aspect-ratio: 1 / 1;
+  background: var(--c-bg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 52px 52px 40px 64px;
+}
+
+/* left accent bar */
+.card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--accent, rgba(255,255,255,0.1));
+}
+
+/* card number */
+.card-num {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.28em;
+  color: rgba(255,255,255,0.2);
+  text-transform: uppercase;
+}
+
+.card-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.card-text {
+  font-weight: 300;
+  line-height: 1.55;
+  color: var(--c-text);
+}
+
+.card-text em {
+  font-style: italic;
+  color: var(--accent, var(--c-text));
+}
+
+.card-text strong {
+  font-weight: 700;
+  color: var(--accent, var(--c-text));
+}
+
+.card-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.wordmark {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: rgba(255,255,255,0.18);
+  text-transform: uppercase;
+}
+
+.meta {
+  font-size: 10px;
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.12);
+  text-align: right;
+  line-height: 1.8;
+}
+
+/* ── Card 1 — red ── */
+#c01 { --accent: var(--c-red); }
+#c01 .card-text { font-size: clamp(22px, 4.5vw, 32px); }
+
+/* ── Card 2 — orange ── */
+#c02 { --accent: var(--c-orange); }
+#c02 .card-text { font-size: clamp(16px, 3.2vw, 22px); }
+
+/* ── Card 3 — amber ── */
+#c03 { --accent: var(--c-amber); }
+#c03 .card-text { font-size: clamp(20px, 4vw, 28px); }
+
+/* ── Card 4 — dim ── */
+#c04 { --accent: rgba(255,255,255,0.3); }
+#c04 .card-text { font-size: clamp(20px, 4vw, 28px); font-style: italic; }
+
+/* ── Card 5 — green ── */
+#c05 { --accent: var(--c-green); }
+#c05 .card-text { font-size: clamp(15px, 2.8vw, 20px); }
+
+/* ── Card 6 — green ── */
+#c06 { --accent: var(--c-green); }
+#c06 .card-text { font-size: clamp(16px, 3.2vw, 22px); }
+
+/* ── Card 7 — violet ── */
+#c07 { --accent: var(--c-violet); }
+#c07 .card-text { font-size: clamp(16px, 3.2vw, 22px); }
+
+/* ── Card 8 — red ── */
+#c08 { --accent: var(--c-red); }
+#c08 .card-text { font-size: clamp(15px, 2.8vw, 20px); }
+
+/* ── Card 9 — bright ── */
+#c09 { --accent: var(--c-text); }
+#c09 .card-text {
+  font-size: clamp(24px, 5vw, 36px);
+  font-weight: 700;
+}
+
+/* ── Card 10 — all colors / final ── */
+#c10 { --accent: var(--c-violet); padding-bottom: 52px; }
+#c10 .card-text { font-size: clamp(13px, 2.6vw, 18px); }
+#c10 .wordmark {
+  font-size: 13px;
+  letter-spacing: 0.22em;
+  color: rgba(255,255,255,0.6);
+}
+.pill-row {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  margin-top: 24px;
+}
+.pill {
+  font-size: 9px; letter-spacing: 0.2em;
+  padding: 4px 10px; border-radius: 20px;
+  border: 1px solid currentColor;
+  text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+
+<h1>Noisecatcher — 10 Instagram posters · Screenshot each card</h1>
+
+<div class="grid">
+
+  <!-- ── 01 ── -->
+  <div class="card" id="c01">
+    <div class="card-num">01 / 10</div>
+    <div class="card-body">
+      <div class="card-text">
+        I built this because some bodies<br>
+        are condemned to loudness.
+      </div>
+    </div>
+    <div class="card-footer">
+      <div class="wordmark">Noisecatcher</div>
+      <div class="meta">Sylvain Souklaye<br>07 · 08 · 2026</div>
+    </div>
+  </div>
+
+  <!-- ── 02 ── -->
+  <div class="card" id="c02">
+    <div class="card-num">02 / 10</div>
+    <div class="card-body">
+      <div class="card-text">
+        Noise is not an inconvenience.<br>
+        It is an <strong>instrument of displacement</strong> —<br>
+        a spatial practice of power<br>
+        embedded into the topography<br>
+        of every city.
+      </div>
+    </div>
+    <div class="card-footer">
+      <div class="wordmark">Noisecatcher</div>
+      <div class="meta">Sylvain Souklaye<br>07 · 08 · 2026</div>
+    </div>
+  </div>
+
+  <!-- ── 03 ── -->
+  <div class="card" id="c03">
+    <div class="card-num">03 / 10</div>
+    <div class="card-body">
+      <div class="card-text">
+        The quiet neighbourhoods<br>
+        are wealthy.<br><br>
+        The loud ones know<br>
+        what they are allowed<br>
+        to protest.
+      </div>
+    </div>
+    <div class="card-footer">
+      <div class="wordmark">Noisecatcher</div>
+      <div class="meta">Sylvain Souklaye<br>07 · 08 · 2026</div>
+    </div>
+  </div>
+
+  <!-- ── 04 ── -->
+  <div class="card" id="c04">
+    <div class="card-num">04 / 10</div>
+    <div class="card-body">
+      <div class="card-text">
+        For years, I lacked an instrument<br>
+        precise enough<br>
+        to build the argument.
+      </div>
+    </div>
+    <div class="card-footer">
+      <div class="wordmark">Noisecatcher</div>
+      <div class="meta">Sylvain Souklaye<br>07 · 08 · 2026</div>
+    </div>
+  </div>
+
+  <!-- ── 05 ── -->
+  <div class="card" id="c05">
+    <div class="card-num">05 / 10</div>
+    <div class="card-body">
+      <div class="card-text">
+        <em>Noisecatcher</em> is a free<br>
+        <strong>electroacoustic instrument</strong> —<br>
+        IEC 61672-1 calibrated,<br>
+        A-weighted — that measures,<br>
+        maps and documents<br>
+        noise pollution in real time.
+      </div>
+    </div>
+    <div class="card-footer">
+      <div class="wordmark">Noisecatcher</div>
+      <div class="meta">Sylvain Souklaye<br>07 · 08 · 2026</div>
+    </div>
+  </div>
+
+  <!-- ── 06 ── -->
+  <div class="card" id="c06">
+    <div class="card-num">06 / 10</div>
+    <div class="card-body">
+      <div class="card-text">
+        It geolocates.<br>
+        It generates evidence.<br>
+        It references regulations.<br>
+        It drafts complaints.<br>
+        It does not ask for your data<br>
+        in return.
+      </div>
+    </div>
+    <div class="card-footer">
+      <div class="wordmark">Noisecatcher</div>
+      <div class="meta">Sylvain Souklaye<br>07 · 08 · 2026</div>
+    </div>
+  </div>
+
+  <!-- ── 07 ── -->
+  <div class="card" id="c07">
+    <div class="card-num">07 / 10</div>
+    <div class="card-body">
+      <div class="card-text">
+        No account. No cloud. No server.<br><br>
+        Your measurements stay<br>
+        on your device —<br>
+        because <strong>data sovereignty</strong><br>
+        and body sovereignty<br>
+        are the same fight.
+      </div>
+    </div>
+    <div class="card-footer">
+      <div class="wordmark">Noisecatcher</div>
+      <div class="meta">Sylvain Souklaye<br>07 · 08 · 2026</div>
+    </div>
+  </div>
+
+  <!-- ── 08 ── -->
+  <div class="card" id="c08">
+    <div class="card-num">08 / 10</div>
+    <div class="card-body">
+      <div class="card-text">
+        The WHO already established<br>
+        that noise is Europe's<br>
+        <strong>second largest<br>environmental health risk</strong>.<br><br>
+        One million healthy life years<br>
+        are lost annually.<br><br>
+        We have had the evidence<br>
+        for decades.
+      </div>
+    </div>
+    <div class="card-footer">
+      <div class="wordmark">Noisecatcher</div>
+      <div class="meta">Sylvain Souklaye<br>07 · 08 · 2026</div>
+    </div>
+  </div>
+
+  <!-- ── 09 ── -->
+  <div class="card" id="c09">
+    <div class="card-num">09 / 10</div>
+    <div class="card-body">
+      <div class="card-text">
+        We are not asking<br>
+        for silence.<br><br>
+        We are asking<br>
+        for accountability.
+      </div>
+    </div>
+    <div class="card-footer">
+      <div class="wordmark">Noisecatcher</div>
+      <div class="meta">Sylvain Souklaye<br>07 · 08 · 2026</div>
+    </div>
+  </div>
+
+  <!-- ── 10 ── -->
+  <div class="card" id="c10">
+    <div class="card-num">10 / 10</div>
+    <div class="card-body" style="flex-direction:column; align-items:flex-start; justify-content:center; gap:32px;">
+      <div class="wordmark" style="font-size:clamp(18px,3.6vw,26px);letter-spacing:0.2em;color:var(--c-text);">NOISECATCHER</div>
+      <div class="card-text" style="font-size:clamp(12px,2.4vw,16px);line-height:2;color:rgba(255,255,255,0.45);">
+        A free electroacoustic instrument.<br>
+        Measure · Map · Understand · Act.<br>
+        noisecatcher.vercel.app
+      </div>
+      <div class="pill-row">
+        <span class="pill" style="color:var(--c-green);">Measure</span>
+        <span class="pill" style="color:var(--c-amber);">Map</span>
+        <span class="pill" style="color:var(--c-orange);">Understand</span>
+        <span class="pill" style="color:var(--c-violet);">Act</span>
+      </div>
+    </div>
+    <div class="card-footer">
+      <div style="font-size:11px;font-weight:300;letter-spacing:0.12em;color:rgba(255,255,255,0.25);line-height:2;">
+        Created by Sylvain Souklaye<br>
+        Released &nbsp;07 · 08 · 2026
+      </div>
+    </div>
+  </div>
+
+</div><!-- /grid -->
+</body>
+</html>

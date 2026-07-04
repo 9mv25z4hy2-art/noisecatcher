@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Noisecatcher — Instagram</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --c-green:  #22c55e;
+  --c-amber:  #eab308;
+  --c-orange: #f97316;
+  --c-red:    #ef4444;
+  --c-violet: #7c3aed;
+  --c-bg:     #0a0a0a;
+  --c-text:   #ededed;
+  --c-dim:    rgba(255,255,255,0.35);
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: #000;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  font-family: 'IBM Plex Mono', monospace;
+  -webkit-font-smoothing: antialiased;
+}
+
+#stage {
+  position: relative;
+  width: min(100vw, calc(100vh * 9 / 16));
+  height: min(100vh, calc(100vw * 16 / 9));
+  background: var(--c-bg);
+  overflow: hidden;
+}
+
+/* ── Segment progress ── */
+#segments {
+  position: absolute;
+  top: 16px; left: 14px; right: 14px;
+  display: flex; gap: 3px;
+  z-index: 100;
+}
+.seg { flex: 1; height: 2px; background: rgba(255,255,255,0.15); border-radius: 1px; overflow: hidden; }
+.seg-fill { height: 100%; background: rgba(255,255,255,0.8); width: 0%; }
+
+/* ── Scenes ── */
+.scene {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 72px 44px 56px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.scene.active { opacity: 1; }
+
+/* ── Animations ── */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.scene.active .anim-1 { animation: rise 0.4s 0.05s cubic-bezier(0.16,1,0.3,1) both; }
+.scene.active .anim-2 { animation: rise 0.4s 0.15s cubic-bezier(0.16,1,0.3,1) both; }
+.scene.active .anim-3 { animation: rise 0.4s 0.25s cubic-bezier(0.16,1,0.3,1) both; }
+.scene.active .anim-4 { animation: rise 0.4s 0.35s cubic-bezier(0.16,1,0.3,1) both; }
+
+/* ── Type ── */
+.eyebrow {
+  font-size: clamp(9px, 2.2vw, 11px); font-weight: 400;
+  letter-spacing: 0.26em; text-transform: uppercase;
+  color: var(--c-dim); margin-bottom: 16px; text-align: center;
+}
+.big {
+  font-size: clamp(19px, 5vw, 26px); font-weight: 300;
+  letter-spacing: 0.01em; line-height: 1.6;
+  color: var(--c-text); text-align: center; max-width: 300px;
+}
+.big strong { font-weight: 700; }
+.source {
+  font-size: clamp(9px, 2.2vw, 11px); letter-spacing: 0.22em;
+  text-transform: uppercase; color: rgba(255,255,255,0.22);
+  margin-top: 28px; text-align: center;
+}
+.caption {
+  font-size: clamp(10px, 2.6vw, 13px); font-weight: 300;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--c-dim); margin-top: 20px; line-height: 2; text-align: center;
+}
+
+/* ── Feature ── */
+.feature-wrap { width: 100%; text-align: left; }
+.feature-index {
+  font-size: clamp(9px, 2.2vw, 11px); font-weight: 400;
+  letter-spacing: 0.24em; color: var(--c-dim); margin-bottom: 12px;
+}
+.feature-name {
+  font-size: clamp(58px, 15vw, 90px);
+  font-weight: 700; letter-spacing: -0.025em; line-height: 0.9;
+}
+.feature-desc {
+  font-size: clamp(13px, 3.2vw, 15px); font-weight: 300;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--c-dim); margin-top: 16px; line-height: 2.1;
+}
+.color-bar {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+}
+
+/* ── WHO table ── */
+.table-wrap { width: 100%; text-align: left; }
+.table-head {
+  font-size: clamp(9px, 2.2vw, 11px); letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--c-dim); margin-bottom: 18px; text-align: center;
+}
+.trow {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: clamp(13px, 3.5vw, 17px) 0;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.trow:first-of-type { border-top: 1px solid rgba(255,255,255,0.07); }
+.tkey {
+  font-size: clamp(11px, 2.8vw, 13px); font-weight: 300;
+  letter-spacing: 0.06em; color: rgba(255,255,255,0.45);
+  display: flex; align-items: center; gap: 10px;
+}
+.dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.tval { font-size: clamp(16px, 4.5vw, 22px); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* ── Manifesto ── */
+.manifesto {
+  font-size: clamp(30px, 8.5vw, 50px); font-weight: 300;
+  line-height: 1.65; color: var(--c-text); text-align: center;
+}
+
+/* ── Final card ── */
+.wordmark {
+  font-size: clamp(22px, 6vw, 32px); font-weight: 700;
+  letter-spacing: 0.16em; color: var(--c-text); text-align: center;
+}
+.url {
+  font-size: clamp(11px, 2.8vw, 13px); font-weight: 300;
+  letter-spacing: 0.1em; color: rgba(255,255,255,0.28);
+  margin-top: 8px; text-align: center;
+}
+.rule { width: 1px; height: 36px; background: rgba(255,255,255,0.1); margin: 22px auto; }
+.pill-row { display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.pill {
+  font-size: clamp(9px, 2.2vw, 11px); letter-spacing: 0.2em;
+  padding: 5px 12px; border-radius: 20px;
+  border: 1px solid currentColor; text-transform: uppercase;
+}
+.credits {
+  font-size: clamp(9px, 2.2vw, 11px); font-weight: 300;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: rgba(255,255,255,0.2); line-height: 2.2; margin-top: 4px; text-align: center;
+}
+
+/* ── Play gate ── */
+#play-gate {
+  position: absolute; inset: 0;
+  background: var(--c-bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px; z-index: 200; cursor: pointer;
+}
+#play-gate .wordmark { font-size: clamp(18px, 5vw, 24px); letter-spacing: 0.2em; }
+#play-hint {
+  font-size: clamp(9px, 2.2vw, 11px); letter-spacing: 0.24em;
+  text-transform: uppercase; color: rgba(255,255,255,0.2);
+}
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <div id="segments"></div>
+
+  <div id="play-gate" onclick="start()">
+    <div class="wordmark">NOISECATCHER</div>
+    <div id="play-hint">Tap to play &nbsp;·&nbsp; 30s</div>
+  </div>
+
+  <!-- S01 · 0–4s · Meter gauge -->
+  <div class="scene" id="s01" style="justify-content: center; padding-top: 48px; padding-bottom: 32px;">
+    <canvas id="gauge-canvas" style="width:100%; max-width:360px; display:block;"></canvas>
+  </div>
+
+  <!-- S02 · 4–7s · Violence / displacement -->
+  <div class="scene" id="s02" style="align-items:flex-start;">
+    <div style="font-size:clamp(9px,2.2vw,11px);letter-spacing:0.26em;text-transform:uppercase;color:var(--c-red);margin-bottom:20px;" class="anim-1">The sound of power</div>
+    <div style="font-size:clamp(28px,7.5vw,44px);font-weight:700;line-height:1.15;color:var(--c-text);" class="anim-2">Noise is<br>displacement.<br>Noise is<br>violence.</div>
+    <div style="font-size:clamp(13px,3.2vw,15px);font-weight:300;color:var(--c-dim);margin-top:22px;line-height:1.9;letter-spacing:0.02em;" class="anim-3">Quiet neighbourhoods are wealthy.<br>Loud ones are not.</div>
+  </div>
+
+  <!-- S03 · 7–10s · WHO stat -->
+  <div class="scene" id="s03" style="text-align:center;">
+    <div class="big anim-1">Noise is the <strong>second largest<br>environmental health risk</strong><br>in Europe.</div>
+    <div style="font-size:clamp(13px,3.2vw,16px);font-weight:700;color:var(--c-red);margin-top:22px;text-align:center;letter-spacing:0.02em;" class="anim-2">1 million healthy life years<br>lost annually.</div>
+    <div class="source anim-3">World Health Organization</div>
+  </div>
+
+  <!-- S04 · 10–13s · MEASURE -->
+  <div class="scene" id="s04">
+    <div class="color-bar" style="background:var(--c-green);"></div>
+    <div class="feature-wrap">
+      <div class="feature-index anim-1">01 / 04</div>
+      <div class="feature-name anim-2" style="color:var(--c-green);">MEASURE</div>
+      <div class="feature-desc anim-3">Electroacoustic instrument<br>IEC 61672-1 · A-weighted<br>Leq · Lnight · Psychoacoustics</div>
+    </div>
+  </div>
+
+  <!-- S05 · 13–16s · MAP -->
+  <div class="scene" id="s05">
+    <div class="color-bar" style="background:var(--c-amber);"></div>
+    <div class="feature-wrap">
+      <div class="feature-index anim-1">02 / 04</div>
+      <div class="feature-name anim-2" style="color:var(--c-amber);">MAP</div>
+      <div class="feature-desc anim-3">Pin events. Geolocate.<br>Export GeoJSON.<br>Share evidence.</div>
+    </div>
+  </div>
+
+  <!-- S06 · 16–19s · UNDERSTAND -->
+  <div class="scene" id="s06">
+    <div class="color-bar" style="background:var(--c-orange);"></div>
+    <div class="feature-wrap">
+      <div class="feature-index anim-1">03 / 04</div>
+      <div class="feature-name anim-2" style="color:var(--c-orange);font-size:clamp(38px,10vw,62px);">UNDERSTAND</div>
+      <div class="feature-desc anim-3">88 terms. From Leq<br>to psychoacoustic<br>annoyance index.</div>
+    </div>
+  </div>
+
+  <!-- S07 · 19–22s · ACT -->
+  <div class="scene" id="s07">
+    <div class="color-bar" style="background:var(--c-violet);"></div>
+    <div class="feature-wrap">
+      <div class="feature-index anim-1">04 / 04</div>
+      <div class="feature-name anim-2" style="color:var(--c-violet);">ACT</div>
+      <div class="feature-desc anim-3">Draft complaints.<br>Reference regulations.<br>Build the case.</div>
+    </div>
+  </div>
+
+  <!-- S08 · 22–25s · Privacy -->
+  <div class="scene" id="s08" style="text-align:center;">
+    <div style="font-size:clamp(9px,2.2vw,11px);letter-spacing:0.26em;text-transform:uppercase;color:var(--c-dim);margin-bottom:20px;" class="anim-1">Privacy by design</div>
+    <div style="font-size:clamp(50px,13vw,78px);font-weight:700;letter-spacing:-0.02em;color:var(--c-text);line-height:1;" class="anim-2">NO<br>CLOUD.</div>
+    <div style="font-size:clamp(13px,3.2vw,15px);font-weight:300;color:var(--c-dim);margin-top:28px;line-height:2;letter-spacing:0.04em;" class="anim-3">No account. No server.<br>Your data stays on your device.<br>You decide what to share.</div>
+  </div>
+
+  <!-- S09 · 25–27s · Manifesto -->
+  <div class="scene" id="s09">
+    <div class="manifesto">
+      <span class="anim-1" style="display:block;">Your noise.</span>
+      <span class="anim-2" style="display:block;">Your data.</span>
+      <span class="anim-3" style="display:block;">Your city.</span>
+    </div>
+  </div>
+
+  <!-- S10 · 27–30s · Logo -->
+  <div class="scene" id="s10">
+    <div class="wordmark anim-1">NOISECATCHER</div>
+    <div class="url anim-1">noisecatcher.vercel.app</div>
+    <div class="rule anim-2"></div>
+    <div class="pill-row anim-2">
+      <span class="pill" style="color:var(--c-green);">MEASURE</span>
+      <span class="pill" style="color:var(--c-amber);">MAP</span>
+      <span class="pill" style="color:var(--c-orange);">UNDERSTAND</span>
+      <span class="pill" style="color:var(--c-violet);">ACT</span>
+    </div>
+    <div class="rule anim-3"></div>
+    <div class="credits anim-3">Created by Sylvain Souklaye<br>Released &nbsp;07 · 08 · 2026</div>
+  </div>
+
+</div><!-- /stage -->
+
+<script>
+// ── Scene timing ──────────────────────────────────────────────────────────
+const SCENES = [
+  { id:'s01', start:0,     end:4000  },
+  { id:'s02', start:4000,  end:7000  },
+  { id:'s03', start:7000,  end:10000 },
+  { id:'s04', start:10000, end:13000 },
+  { id:'s05', start:13000, end:16000 },
+  { id:'s06', start:16000, end:19000 },
+  { id:'s07', start:19000, end:22000 },
+  { id:'s08', start:22000, end:25000 },
+  { id:'s09', start:25000, end:27000 },
+  { id:'s10', start:27000, end:30000 },
+];
+const TOTAL = 30000;
+const N = SCENES.length;
+
+// ── Gauge constants ───────────────────────────────────────────────────────
+const START_ANG = Math.PI * 0.75;   // 7:30 position
+const SPAN_ANG  = Math.PI * 1.5;    // 270° sweep
+const MAX_DB    = 120;
+const TARGET_DB = 87;
+
+// Threshold markers (db → color), from app's thresholds.ts
+const THRESHOLDS = [
+  { db: 0,   color: '#22c55e' },
+  { db: 55,  color: '#eab308' },
+  { db: 70,  color: '#f97316' },
+  { db: 85,  color: '#ef4444' },
+  { db: 120, color: '#7c3aed' },
+];
+
+function dbToAngle(db) {
+  return START_ANG + (db / MAX_DB) * SPAN_ANG;
+}
+
+function dbColor(db) {
+  if (db < 55)  return '#22c55e';
+  if (db < 70)  return '#eab308';
+  if (db < 85)  return '#f97316';
+  if (db < 100) return '#ef4444';
+  return '#7c3aed';
+}
+
+// Easing: ease-out cubic
+function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+function drawGauge(db, active) {
+  const canvas = document.getElementById('gauge-canvas');
+  if (!canvas) return;
+  const stage = document.getElementById('stage');
+  const stageW = stage.offsetWidth;
+  const size = Math.round(stageW * 0.88);
+  canvas.width  = size;
+  canvas.height = Math.round(size * 0.72); // slightly taller than half
+  const ctx = canvas.getContext('2d');
+
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2;
+  const cy = H * 0.62; // push center toward bottom of canvas
+  const r  = Math.min(W * 0.42, H * 0.82);
+
+  ctx.clearRect(0, 0, W, H);
+
+  // ── Track arc ──
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, START_ANG, START_ANG + SPAN_ANG);
+  ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+  ctx.lineWidth = Math.max(1.5, r * 0.014);
+  ctx.stroke();
+
+  // ── Tick marks ──
+  for (let d = 0; d <= MAX_DB; d += 5) {
+    const ang = dbToAngle(d);
+    const major = d % 10 === 0;
+    const inner = r * (major ? 0.86 : 0.92);
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(ang) * inner, cy + Math.sin(ang) * inner);
+    ctx.lineTo(cx + Math.cos(ang) * r,     cy + Math.sin(ang) * r);
+    ctx.strokeStyle = major ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = major ? 1.5 : 1;
+    ctx.stroke();
+  }
+
+  // ── Threshold colored markers ──
+  THRESHOLDS.forEach(t => {
+    const ang  = dbToAngle(t.db);
+    const i1   = r * 0.79;
+    const i2   = r * 0.97;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(ang) * i1, cy + Math.sin(ang) * i1);
+    ctx.lineTo(cx + Math.cos(ang) * i2, cy + Math.sin(ang) * i2);
+    ctx.strokeStyle = t.color;
+    ctx.lineWidth = Math.max(2.5, r * 0.025);
+    ctx.stroke();
+  });
+
+  // ── Active: colored arc + needle ──
+  if (active && db > 0) {
+    const needleAng = dbToAngle(db);
+    const color = dbColor(db);
+
+    // Filled arc from 0 to current dB
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.98, START_ANG, needleAng);
+    ctx.strokeStyle = color + '40'; // low-opacity fill
+    ctx.lineWidth = r * 0.05;
+    ctx.stroke();
+
+    // Needle line
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(needleAng + Math.PI) * r * 0.12,
+               cy + Math.sin(needleAng + Math.PI) * r * 0.12);
+    ctx.lineTo(cx + Math.cos(needleAng) * r * 0.78,
+               cy + Math.sin(needleAng) * r * 0.78);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = Math.max(1.5, r * 0.016);
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    // Needle dot
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.045, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+  } else {
+    // Center dot (inactive)
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.03, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.fill();
+  }
+
+  // ── Number labels ──
+  const mono = 'IBM Plex Mono, monospace';
+  const lblSize = Math.round(r * 0.11);
+  ctx.font = `300 ${lblSize}px ${mono}`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  [{ db:0, label:'0' }, { db:55, label:'55' }, { db:70, label:'70' }, { db:85, label:'85' }, { db:120, label:'120' }]
+  .forEach(l => {
+    const ang   = dbToAngle(l.db);
+    const labelR = r * 1.15;
+    const x = cx + Math.cos(ang) * labelR;
+    const y = cy + Math.sin(ang) * labelR;
+    ctx.fillStyle = 'rgba(255,255,255,0.28)';
+    ctx.fillText(l.label, x, y);
+  });
+
+  // ── Center text ──
+  ctx.textAlign = 'center';
+  if (!active) {
+    ctx.font = `300 ${Math.round(r * 0.13)}px ${mono}`;
+    ctx.fillStyle = 'rgba(255,255,255,0.28)';
+    ctx.letterSpacing = '0.2em';
+    ctx.fillText('INACTIVE', cx, cy - r * 0.04);
+    ctx.font = `300 ${Math.round(r * 0.09)}px ${mono}`;
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.letterSpacing = '0.12em';
+    ctx.fillText('dB(A)', cx, cy + r * 0.16);
+  } else {
+    const color = dbColor(db);
+    ctx.font = `700 ${Math.round(r * 0.36)}px ${mono}`;
+    ctx.fillStyle = color;
+    ctx.letterSpacing = '-0.02em';
+    ctx.fillText(Math.round(db), cx, cy + r * 0.04);
+    ctx.font = `300 ${Math.round(r * 0.1)}px ${mono}`;
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.letterSpacing = '0.12em';
+    ctx.fillText('dB(A)', cx, cy + r * 0.23);
+  }
+}
+
+// ── Segment progress bars ─────────────────────────────────────────────────
+const segWrap = document.getElementById('segments');
+SCENES.forEach(() => {
+  const s = document.createElement('div'); s.className = 'seg';
+  const f = document.createElement('div'); f.className = 'seg-fill';
+  s.appendChild(f); segWrap.appendChild(s);
+});
+const segFills = Array.from(document.querySelectorAll('.seg-fill'));
+
+// ── Playback ──────────────────────────────────────────────────────────────
+let startTime = null, raf = null, current = -1;
+let gaugeAnimStart = null; // when needle sweep begins
+
+function start() {
+  document.getElementById('play-gate').style.display = 'none';
+  startTime = performance.now();
+  drawGauge(0, false); // initial INACTIVE draw
+  raf = requestAnimationFrame(tick);
+}
+
+function tick(now) {
+  const elapsed = now - startTime;
+
+  // ── Segments ──
+  for (let i = 0; i < N; i++) {
+    const sc = SCENES[i];
+    if (elapsed >= sc.end) {
+      segFills[i].style.width = '100%';
+    } else if (elapsed >= sc.start) {
+      segFills[i].style.width = ((elapsed - sc.start) / (sc.end - sc.start) * 100) + '%';
+    }
+  }
+
+  // ── Active scene ──
+  let active = -1;
+  for (let i = 0; i < N; i++) {
+    if (elapsed >= SCENES[i].start && elapsed < SCENES[i].end) { active = i; break; }
+  }
+  if (active !== current) {
+    if (current >= 0) {
+      const el = document.getElementById(SCENES[current].id);
+      el.classList.remove('active');
+      el.querySelectorAll('[class*="anim-"]').forEach(e => {
+        e.style.animation = 'none'; void e.offsetWidth; e.style.animation = '';
+      });
+    }
+    if (active >= 0) document.getElementById(SCENES[active].id).classList.add('active');
+    current = active;
+  }
+
+  // ── Gauge animation (scene 0 = s01) ──
+  if (active === 0) {
+    const sceneElapsed = elapsed - SCENES[0].start;
+    const INACTIVE_HOLD = 900;   // ms INACTIVE before sweep
+    const SWEEP_DUR     = 1600;  // ms to sweep 0→87
+
+    if (sceneElapsed < INACTIVE_HOLD) {
+      drawGauge(0, false);
+    } else {
+      const sweepElapsed = sceneElapsed - INACTIVE_HOLD;
+      const t = Math.min(sweepElapsed / SWEEP_DUR, 1);
+      const db = easeOut(t) * TARGET_DB;
+      drawGauge(db, true);
+    }
+  } else if (current !== 0 && active !== 0) {
+    // Keep gauge at rest when not on scene 1
+  }
+
+  if (elapsed < TOTAL) {
+    raf = requestAnimationFrame(tick);
+  } else {
+    segFills.forEach(f => f.style.width = '100%');
+    if (current >= 0) document.getElementById(SCENES[current].id).classList.remove('active');
+  }
+}
+</script>
+</body>
+</html>

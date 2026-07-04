@@ -3,8 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mic, MicOff, AlertTriangle, Info, MapPin, SlidersHorizontal, Headphones, FileText, BellRing, BellOff, Wand2, Lock, Unlock, Share2, Check } from "lucide-react";
-import { WAKE_MP4 } from "@/lib/wakeVideo";
+import { Mic, MicOff, AlertTriangle, Info, MapPin, SlidersHorizontal, Headphones, FileText, BellRing, BellOff, Wand2, Share2, Check } from "lucide-react";
 import { NoiseMeter as NoiseMeterEngine, listAudioInputDevices, type ExtendedMeterReading } from "@/lib/audio/meter";
 import { getThreshold, THRESHOLDS } from "@/lib/thresholds";
 import { ABECEDAIRE } from "@/lib/abecedaire";
@@ -109,11 +108,10 @@ export default function NoiseMeter() {
   const motionCleanupRef = useRef<(() => void) | null>(null);
   const gpsWatchRef = useRef<number | null>(null);
 
-  // ── Wake Lock ────────────────────────────────────────────────────────────────
-  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
-  const wakeVideoRef = useRef<HTMLVideoElement | null>(null);
-  const isActiveRef = useRef(false);
-  const [wakeLockActive, setWakeLockActive] = useState(false);
+  // ── Auto-lock notice (dismissed once per install) ────────────────────────────
+  const [autoLockDismissed, setAutoLockDismissed] = useState(() =>
+    typeof localStorage !== "undefined" && localStorage.getItem("nc_autolock_dismissed") === "1"
+  );
 
   // ── Expert mode ──────────────────────────────────────────────────────────────
   const [expertMode, setExpertMode] = useState(() => {
@@ -144,19 +142,6 @@ export default function NoiseMeter() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (typeof Notification === "undefined") { setNotifPermission("unsupported"); return; }
     setNotifPermission(Notification.permission);
-  }, []);
-
-  // Re-acquire Wake Lock when page becomes visible again (e.g. user returns from another app)
-  useEffect(() => {
-    async function onVisibility() {
-      if (document.visibilityState === "visible" && isActiveRef.current) {
-        wakeVideoRef.current?.play().catch(() => {});
-        // acquireWakeLock is scoped to startMeter; the release-listener loop
-        // handles re-acquisition automatically after visibility restores.
-      }
-    }
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
 
   // Enumerate audio input devices after mount. Labels are only available after
@@ -313,24 +298,6 @@ export default function NoiseMeter() {
     // NoSleep.js ships this same video but bypasses it on iOS 16.4+ (where
     // navigator.wakeLock exists), falling back to the Wake Lock API that is
     // unreliable in PWA standalone mode. We drive the video directly instead.
-    // Video: use src= directly (not <source> elements) so the mp4 data URI is
-    // available synchronously — no format-probe round-trip that would lose the
-    // iOS user-gesture context before play() is called.
-    isActiveRef.current = true;
-    try {
-      if (!wakeVideoRef.current) {
-        const v = document.createElement("video");
-        v.setAttribute("playsinline", "");
-        v.muted = true;
-        v.loop = true;
-        v.src = WAKE_MP4;
-        v.style.cssText = "position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;";
-        document.body.appendChild(v);
-        wakeVideoRef.current = v;
-      }
-      wakeVideoRef.current.play().then(() => setWakeLockActive(true)).catch(() => {});
-    } catch { /* non-fatal */ }
-
     setError(null);
     setPeak(0);
     setPeakAt(null);
@@ -338,7 +305,6 @@ export default function NoiseMeter() {
     setDiscardedCount(0);
     setBearing(null);
     prevLevelRef.current = null;
-    // eslint-disable-next-line react-hooks/purity
     sessionStartRef.current = Date.now();
     setSessionDurationS(0);
     peakClipBlobRef.current = null;
@@ -382,20 +348,6 @@ export default function NoiseMeter() {
     if (devs.length > 0) setAudioDevices(devs);
     setIsActive(true);
 
-    // Wake Lock API with re-acquire on release.
-    // iOS releases the sentinel when it starts the dim sequence. Re-requesting
-    // in the release handler fires before the screen actually turns off,
-    // interrupting the dim. Combined with the video loop above for maximum coverage.
-    async function acquireWakeLock() {
-      if (!isActiveRef.current || !("wakeLock" in navigator)) return;
-      try {
-        const sentinel = await navigator.wakeLock.request("screen");
-        wakeLockRef.current = sentinel;
-        sentinel.addEventListener("release", () => { acquireWakeLock(); }, { once: true });
-      } catch { /* non-fatal */ }
-    }
-    acquireWakeLock();
-
     // Passive GPS watch for multi-device TDOA — low accuracy, minimal battery impact
     if (typeof navigator !== "undefined" && navigator.geolocation) {
       gpsWatchRef.current = navigator.geolocation.watchPosition(
@@ -407,19 +359,10 @@ export default function NoiseMeter() {
   };
 
   const stopMeter = () => {
-    isActiveRef.current = false; // stops the Wake Lock re-acquire loop
     if (gpsWatchRef.current !== null) {
       navigator.geolocation.clearWatch(gpsWatchRef.current);
       gpsWatchRef.current = null;
     }
-    try {
-      wakeVideoRef.current?.pause();
-      wakeVideoRef.current?.remove();
-      wakeVideoRef.current = null;
-    } catch { /* non-fatal */ }
-    wakeLockRef.current?.release().catch(() => {});
-    wakeLockRef.current = null;
-    setWakeLockActive(false);
     // Stop any ongoing peak audio capture
     if (peakClipTimeoutRef.current) clearTimeout(peakClipTimeoutRef.current);
     if (peakMediaRecorderRef.current?.state === "recording") peakMediaRecorderRef.current.stop();
@@ -1109,17 +1052,21 @@ export default function NoiseMeter() {
         </div>
       )}
 
-      {/* ── Wake Lock status ── */}
-      {wakeLockActive && (
-        <div className="w-full flex items-center gap-2 px-3 py-1.5 rounded te-label text-[10px]" style={{ background: "var(--nc-bg-raised)", border: "1px solid var(--nc-border)" }}>
-          <Lock className="w-3 h-3 text-green-500 shrink-0" />
-          <span style={{ color: "var(--nc-text-2)" }}>Screen lock suppressed — screen will stay on during measurement.</span>
-        </div>
-      )}
-      {!wakeLockActive && !isActive && (
-        <div className="w-full flex items-center gap-2 px-3 py-1.5 rounded te-label text-[10px]" style={{ background: "var(--nc-bg-raised)", border: "1px solid var(--nc-border)" }}>
-          <Unlock className="w-3 h-3 shrink-0" style={{ color: "var(--nc-text-3)" }} />
-          <span style={{ color: "var(--nc-text-3)" }}>Screen lock will be suppressed when measurement starts.</span>
+      {/* ── Auto-lock notice ── */}
+      {!autoLockDismissed && (
+        <div className="w-full flex items-start gap-2 px-3 py-2 rounded te-label text-[10px]" style={{ background: "var(--nc-bg-raised)", border: "1px solid var(--nc-border)" }}>
+          <span className="shrink-0 mt-px" style={{ color: "var(--nc-text-3)" }}>⚠</span>
+          <span style={{ color: "var(--nc-text-2)" }}>
+            To keep the screen on during measurement: <strong>Settings → Display &amp; Brightness → Auto-Lock → Never</strong>. Restore after use.
+          </span>
+          <button
+            onClick={() => { setAutoLockDismissed(true); localStorage.setItem("nc_autolock_dismissed", "1"); }}
+            className="shrink-0 ml-auto pl-2"
+            aria-label="Dismiss"
+            style={{ color: "var(--nc-text-3)" }}
+          >
+            ✕
+          </button>
         </div>
       )}
 

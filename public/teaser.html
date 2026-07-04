@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Noisecatcher — Teaser</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --c-green:  #22c55e;
+    --c-amber:  #eab308;
+    --c-orange: #f97316;
+    --c-red:    #ef4444;
+    --c-violet: #7c3aed;
+    --c-bg:     #0a0a0a;
+    --c-text:   #ededed;
+    --c-dim:    rgba(255,255,255,0.38);
+    --c-border: rgba(255,255,255,0.08);
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--c-bg);
+    color: var(--c-text);
+    font-family: 'IBM Plex Mono', monospace;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ── Scene system ── */
+  .scene {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 56px 44px;
+    padding-top: calc(56px + env(safe-area-inset-top));
+    padding-bottom: calc(56px + env(safe-area-inset-bottom));
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    text-align: center;
+    pointer-events: none;
+  }
+  .scene.active { opacity: 1; }
+
+  /* ── Type ── */
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    margin-bottom: 24px;
+  }
+
+  .mega {
+    font-size: clamp(72px, 20vw, 120px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 0.92;
+    color: var(--c-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .big {
+    font-size: clamp(54px, 14vw, 88px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 0.95;
+    color: var(--c-text);
+  }
+
+  .caption {
+    font-size: 13px;
+    font-weight: 300;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    margin-top: 22px;
+    line-height: 1.9;
+  }
+
+  .statement {
+    font-size: clamp(20px, 5.5vw, 28px);
+    font-weight: 300;
+    letter-spacing: 0.01em;
+    line-height: 1.55;
+    color: var(--c-text);
+    max-width: 340px;
+  }
+  .statement strong { font-weight: 700; }
+
+  .source {
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    margin-top: 28px;
+  }
+
+  /* ── Color accent on large text ── */
+  .accent-green  { color: var(--c-green);  }
+  .accent-amber  { color: var(--c-amber);  }
+  .accent-orange { color: var(--c-orange); }
+  .accent-red    { color: var(--c-red);    }
+  .accent-violet { color: var(--c-violet); }
+
+  /* ── Color dot ── */
+  .dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 10px;
+    flex-shrink: 0;
+    position: relative;
+    top: -1px;
+  }
+
+  /* ── Horizontal rule ── */
+  .rule {
+    width: 1px; height: 48px;
+    background: rgba(255,255,255,0.1);
+    margin: 28px auto;
+  }
+
+  /* ── Feature card (scenes 4-7) ── */
+  .feature-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 320px;
+    text-align: left;
+  }
+  .feature-index {
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.22em;
+    color: var(--c-dim);
+    margin-bottom: 16px;
+  }
+  .feature-name {
+    font-size: clamp(60px, 16vw, 96px);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 0.9;
+  }
+  .feature-desc {
+    font-size: 14px;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    margin-top: 20px;
+    line-height: 2;
+  }
+
+  /* ── WHO table ── */
+  .table-wrap {
+    width: 100%;
+    max-width: 320px;
+    text-align: left;
+  }
+  .table-head {
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    margin-bottom: 20px;
+  }
+  .table-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--c-border);
+  }
+  .table-row:first-of-type { border-top: 1px solid var(--c-border); }
+  .table-key {
+    font-size: 13px;
+    font-weight: 300;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.55);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .table-val {
+    font-size: 18px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  /* ── Manifesto (scene 9) ── */
+  .manifesto {
+    font-size: clamp(28px, 7.5vw, 42px);
+    font-weight: 300;
+    line-height: 1.7;
+    letter-spacing: 0.01em;
+    color: var(--c-text);
+    text-align: center;
+  }
+
+  /* ── Final card ── */
+  .wordmark {
+    font-size: clamp(20px, 6vw, 30px);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--c-text);
+  }
+  .url {
+    font-size: 13px;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.28);
+    margin-top: 10px;
+  }
+  .tagline {
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.16);
+    margin-top: 6px;
+  }
+  .credits {
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.18);
+    line-height: 2;
+    margin-top: 6px;
+  }
+
+  /* ── Progress bar ── */
+  #progress {
+    position: fixed;
+    bottom: calc(env(safe-area-inset-bottom) + 28px);
+    left: 44px; right: 44px;
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+    z-index: 200;
+  }
+  #progress-fill {
+    height: 100%;
+    background: rgba(255,255,255,0.2);
+    width: 0%;
+    transition: width 0.1s linear;
+  }
+
+  /* ── Play screen ── */
+  #play-screen {
+    position: fixed; inset: 0;
+    background: var(--c-bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 14px;
+    z-index: 999;
+    cursor: pointer;
+  }
+  #play-screen .wordmark { font-size: 20px; letter-spacing: 0.2em; }
+  #play-hint {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.22);
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Play gate ── -->
+<div id="play-screen" onclick="start()">
+  <div class="wordmark">NOISECATCHER</div>
+  <div id="play-hint">Tap to play &nbsp;·&nbsp; 30s</div>
+</div>
+
+<!-- ─────────────────────────────────────────
+     S01 · 0–3s · Wordmark
+───────────────────────────────────────── -->
+<div class="scene" id="s01">
+  <div class="eyebrow">A tool for the city</div>
+  <div class="wordmark" style="font-size: clamp(26px, 7vw, 38px);">NOISECATCHER</div>
+</div>
+
+<!-- ─────────────────────────────────────────
+     S02 · 3–6s · The problem
+───────────────────────────────────────── -->
+<div class="scene" id="s02">
+  <div class="statement">
+    Noise is the <strong>second largest environmental health risk</strong> in Europe.
+  </div>
+  <div class="source">World Health Organization</div>
+</div>
+
+<!-- ─────────────────────────────────────────
+     S03 · 6–9s · The instrument — dB in red
+───────────────────────────────────────── -->
+<div class="scene" id="s03">
+  <div class="eyebrow">A-weighted &nbsp;·&nbsp; real time</div>
+  <div class="mega accent-red">87 dB</div>
+  <div class="caption">Threshold of harm exceeded</div>
+</div>
+
+<!-- ─────────────────────────────────────────
+     S04 · 9–12s · MEASURE — green
+───────────────────────────────────────── -->
+<div class="scene" id="s04">
+  <div class="feature-wrap">
+    <div class="feature-index">01 &nbsp;/&nbsp; 04</div>
+    <div class="feature-name accent-green">MEASURE</div>
+    <div class="feature-desc">
+      Calibrated dB readings<br>
+      Leq · Lnight · Loudness<br>
+      Psychoacoustic analysis
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────
+     S05 · 12–15s · MAP — amber
+───────────────────────────────────────── -->
+<div class="scene" id="s05">
+  <div class="feature-wrap">
+    <div class="feature-index">02 &nbsp;/&nbsp; 04</div>
+    <div class="feature-name accent-amber">MAP</div>
+    <div class="feature-desc">
+      Pin events. Geolocate.<br>
+      Export GeoJSON.<br>
+      Share evidence.
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────
+     S06 · 15–18s · UNDERSTAND — orange
+───────────────────────────────────────── -->
+<div class="scene" id="s06">
+  <div class="feature-wrap">
+    <div class="feature-index">03 &nbsp;/&nbsp; 04</div>
+    <div class="feature-name accent-orange" style="font-size: clamp(44px, 12vw, 72px); letter-spacing: -0.02em;">UNDERSTAND</div>
+    <div class="feature-desc">
+      88 terms. From Leq<br>
+      to psychoacoustic<br>
+      annoyance index.
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────
+     S07 · 18–21s · ACT — violet
+───────────────────────────────────────── -->
+<div class="scene" id="s07">
+  <div class="feature-wrap">
+    <div class="feature-index">04 &nbsp;/&nbsp; 04</div>
+    <div class="feature-name accent-violet">ACT</div>
+    <div class="feature-desc">
+      Draft complaints.<br>
+      Reference regulations.<br>
+      Build the case.
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────
+     S08 · 21–24s · WHO thresholds — color-coded
+───────────────────────────────────────── -->
+<div class="scene" id="s08">
+  <div class="table-wrap">
+    <div class="table-head">WHO Environmental Noise Guidelines</div>
+    <div class="table-row">
+      <span class="table-key">
+        <span class="dot" style="background: var(--c-green);"></span>Road traffic · day
+      </span>
+      <span class="table-val accent-green">53 dB</span>
+    </div>
+    <div class="table-row">
+      <span class="table-key">
+        <span class="dot" style="background: var(--c-amber);"></span>Road traffic · night
+      </span>
+      <span class="table-val accent-amber">45 dB</span>
+    </div>
+    <div class="table-row">
+      <span class="table-key">
+        <span class="dot" style="background: var(--c-red);"></span>Urban average
+      </span>
+      <span class="table-val accent-red">~70 dB</span>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────
+     S09 · 24–27s · Manifesto
+───────────────────────────────────────── -->
+<div class="scene" id="s09">
+  <div class="manifesto">
+    Your noise.<br>
+    Your data.<br>
+    Your city.
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────
+     S10 · 27–30s · Final card
+───────────────────────────────────────── -->
+<div class="scene" id="s10">
+  <div class="wordmark">NOISECATCHER</div>
+  <div class="url">noisecatcher.vercel.app</div>
+  <div class="rule" style="height: 32px; margin: 24px auto;"></div>
+  <div style="display: flex; gap: 16px; align-items: center; justify-content: center;">
+    <span style="font-size: 11px; letter-spacing: 0.18em; color: var(--c-green);">MEASURE</span>
+    <span style="color: rgba(255,255,255,0.12); font-size: 11px;">·</span>
+    <span style="font-size: 11px; letter-spacing: 0.18em; color: var(--c-amber);">MAP</span>
+    <span style="color: rgba(255,255,255,0.12); font-size: 11px;">·</span>
+    <span style="font-size: 11px; letter-spacing: 0.18em; color: var(--c-orange);">UNDERSTAND</span>
+    <span style="color: rgba(255,255,255,0.12); font-size: 11px;">·</span>
+    <span style="font-size: 11px; letter-spacing: 0.18em; color: var(--c-violet);">ACT</span>
+  </div>
+  <div class="rule" style="height: 32px; margin: 24px auto;"></div>
+  <div class="credits">
+    Created by Sylvain Souklaye<br>
+    Released &nbsp;07 · 08 · 2026
+  </div>
+</div>
+
+<!-- ── Progress ── -->
+<div id="progress"><div id="progress-fill"></div></div>
+
+<script>
+  const TOTAL = 30000;
+  const scenes = [
+    { id: 's01', start: 0,     end: 3000  },
+    { id: 's02', start: 3000,  end: 6000  },
+    { id: 's03', start: 6000,  end: 9000  },
+    { id: 's04', start: 9000,  end: 12000 },
+    { id: 's05', start: 12000, end: 15000 },
+    { id: 's06', start: 15000, end: 18000 },
+    { id: 's07', start: 18000, end: 21000 },
+    { id: 's08', start: 21000, end: 24000 },
+    { id: 's09', start: 24000, end: 27000 },
+    { id: 's10', start: 27000, end: 30000 },
+  ];
+
+  let startTime = null, raf = null, currentScene = -1;
+
+  function start() {
+    document.getElementById('play-screen').style.display = 'none';
+    startTime = performance.now();
+    raf = requestAnimationFrame(tick);
+  }
+
+  function tick(now) {
+    const elapsed = now - startTime;
+    document.getElementById('progress-fill').style.width = Math.min(elapsed / TOTAL * 100, 100) + '%';
+
+    let activeIdx = -1;
+    for (let i = 0; i < scenes.length; i++) {
+      if (elapsed >= scenes[i].start && elapsed < scenes[i].end) { activeIdx = i; break; }
+    }
+
+    if (activeIdx !== currentScene) {
+      if (currentScene >= 0) document.getElementById(scenes[currentScene].id).classList.remove('active');
+      if (activeIdx >= 0)    document.getElementById(scenes[activeIdx].id).classList.add('active');
+      currentScene = activeIdx;
+    }
+
+    if (elapsed < TOTAL) {
+      raf = requestAnimationFrame(tick);
+    } else {
+      if (currentScene >= 0) document.getElementById(scenes[currentScene].id).classList.remove('active');
+    }
+  }
+</script>
+</body>
+</html>
