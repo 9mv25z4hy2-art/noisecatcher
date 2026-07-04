@@ -271,7 +271,13 @@ export async function listAudioInputDevices(): Promise<MediaDeviceInfo[]> {
   }
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
-    return devices.filter((d) => d.kind === "audioinput");
+    return devices.filter((d) => {
+      if (d.kind !== "audioinput") return false;
+      // Exclude Bluetooth earbuds and headsets — their noise-cancellation and
+      // beam-forming processing invalidates environmental noise measurements.
+      const label = d.label.toLowerCase();
+      return !/airpod|earbud|headphone|headset|buds|bluetooth|bose|sony wf|jabra|beats|galaxy buds|pixel buds/i.test(label);
+    });
   } catch {
     return [];
   }
