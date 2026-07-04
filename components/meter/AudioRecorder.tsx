@@ -35,7 +35,6 @@ export default function AudioRecorderPanel() {
   const [error, setError] = useState<string | null>(null);
   const [canShare] = useState(() => typeof navigator !== "undefined" && "canShare" in navigator);
   const [markers, setMarkers] = useState<RecordingMarker[]>([]);
-  const [mounted, setMounted] = useState(false);
   const [mimeType] = useState(() => getSupportedMimeType());
   const recorderRef = useRef<Recorder | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -90,15 +89,11 @@ export default function AudioRecorderPanel() {
   }
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
     return () => {
       recorderRef.current?.stop();
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);
-
-  if (!mounted) return null;
 
   if (!mimeType && typeof MediaRecorder === "undefined") {
     return (

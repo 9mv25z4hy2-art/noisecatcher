@@ -1003,6 +1003,9 @@ export default function NoiseMeter() {
         </div>
       </div>
 
+      {/* ── Audio recorder ── */}
+      <AudioRecorderPanel />
+
       {/* ── Start / Stop + Stop & Report + Calibrate ── */}
       <div className="flex items-center gap-3 w-full">
         <button
@@ -1069,9 +1072,6 @@ export default function NoiseMeter() {
           </button>
         </div>
       )}
-
-      {/* ── Audio recorder ── */}
-      <AudioRecorderPanel />
 
       {/* ── Continuous threshold alert ── */}
       <div className="w-full te-panel rounded-md overflow-hidden">
