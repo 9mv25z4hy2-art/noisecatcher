@@ -332,9 +332,12 @@ export default function NoiseMeter() {
         mp4Src.type = "video/mp4";
         v.appendChild(webmSrc);
         v.appendChild(mp4Src);
+        // Must be in the DOM — iOS Safari won't play a detached video element
+        v.style.cssText = "position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;";
+        document.body.appendChild(v);
         wakeVideoRef.current = v;
       }
-      wakeVideoRef.current.play();
+      wakeVideoRef.current.play().catch(() => {});
       setWakeLockActive(true);
     } catch { /* non-fatal */ }
 
@@ -410,7 +413,11 @@ export default function NoiseMeter() {
       navigator.geolocation.clearWatch(gpsWatchRef.current);
       gpsWatchRef.current = null;
     }
-    try { wakeVideoRef.current?.pause(); } catch { /* non-fatal */ }
+    try {
+      wakeVideoRef.current?.pause();
+      wakeVideoRef.current?.remove();
+      wakeVideoRef.current = null;
+    } catch { /* non-fatal */ }
     wakeLockRef.current?.release().catch(() => {});
     wakeLockRef.current = null;
     setWakeLockActive(false);
