@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mic, MicOff, AlertTriangle, Info, MapPin, SlidersHorizontal, Headphones, FileText, BellRing, BellOff, Wand2, Lock, Unlock, Share2, Check } from "lucide-react";
+import NoSleep from "nosleep.js";
 import { NoiseMeter as NoiseMeterEngine, listAudioInputDevices, type ExtendedMeterReading } from "@/lib/audio/meter";
 import { getThreshold, THRESHOLDS } from "@/lib/thresholds";
 import { ABECEDAIRE } from "@/lib/abecedaire";
@@ -110,6 +111,7 @@ export default function NoiseMeter() {
 
   // ── Wake Lock ────────────────────────────────────────────────────────────────
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+  const noSleepRef = useRef<NoSleep | null>(null);
   const [wakeLockActive, setWakeLockActive] = useState(false);
 
   // ── Expert mode ──────────────────────────────────────────────────────────────
@@ -146,11 +148,16 @@ export default function NoiseMeter() {
   // Re-acquire Wake Lock when page becomes visible again (e.g. user returns from another app)
   useEffect(() => {
     async function onVisibility() {
-      if (document.visibilityState === "visible" && isActive && "wakeLock" in navigator) {
+      if (document.visibilityState === "visible" && isActive) {
         try {
-          wakeLockRef.current = await navigator.wakeLock.request("screen");
+          await noSleepRef.current?.enable();
           setWakeLockActive(true);
         } catch { /* non-fatal */ }
+        if ("wakeLock" in navigator) {
+          try {
+            wakeLockRef.current = await navigator.wakeLock.request("screen");
+          } catch { /* non-fatal */ }
+        }
       }
     }
     document.addEventListener("visibilitychange", onVisibility);
@@ -355,12 +362,17 @@ export default function NoiseMeter() {
     if (devs.length > 0) setAudioDevices(devs);
     setIsActive(true);
 
-    // Wake Lock — keep screen on during continuous measurement
+    // Screen wake — NoSleep.js as primary (works on iOS via silent video loop),
+    // Wake Lock API as secondary for browsers that support it natively.
+    try {
+      if (!noSleepRef.current) noSleepRef.current = new NoSleep();
+      await noSleepRef.current.enable();
+      setWakeLockActive(true);
+    } catch { /* non-fatal */ }
     if ("wakeLock" in navigator) {
       try {
         wakeLockRef.current = await navigator.wakeLock.request("screen");
-        setWakeLockActive(true);
-      } catch { /* non-fatal: denied or unsupported */ }
+      } catch { /* non-fatal */ }
     }
 
     // Passive GPS watch for multi-device TDOA — low accuracy, minimal battery impact
@@ -378,6 +390,7 @@ export default function NoiseMeter() {
       navigator.geolocation.clearWatch(gpsWatchRef.current);
       gpsWatchRef.current = null;
     }
+    noSleepRef.current?.disable();
     wakeLockRef.current?.release().catch(() => {});
     wakeLockRef.current = null;
     setWakeLockActive(false);
