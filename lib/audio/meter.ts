@@ -273,10 +273,13 @@ export async function listAudioInputDevices(): Promise<MediaDeviceInfo[]> {
     const devices = await navigator.mediaDevices.enumerateDevices();
     return devices.filter((d) => {
       if (d.kind !== "audioinput") return false;
-      // Exclude Bluetooth earbuds and headsets — their noise-cancellation and
-      // beam-forming processing invalidates environmental noise measurements.
+      // Exclude Bluetooth consumer earbuds — their noise-cancellation and
+      // beam-forming DSP invalidates environmental noise measurements.
+      // Wired/USB-C microphones, binaural headsets, and ambisonic mics are
+      // allowed regardless of label; only block devices explicitly identified
+      // as Bluetooth or known consumer earbud product lines.
       const label = d.label.toLowerCase();
-      return !/airpod|earbud|headphone|headset|buds|bluetooth|bose|sony wf|jabra|beats|galaxy buds|pixel buds/i.test(label);
+      return !/airpod|\bearbud|\bbuds\b|bluetooth/i.test(label);
     });
   } catch {
     return [];
