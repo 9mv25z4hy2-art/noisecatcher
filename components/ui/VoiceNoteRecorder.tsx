@@ -94,19 +94,20 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
   }, []);
 
   const finishRecording = (blob: Blob, dur: number) => {
-    const url = URL.createObjectURL(blob);
-    setPlaybackUrl(url);
     const finalTranscript = transcriptRef.current.trim() || undefined;
     const reader = new FileReader();
     reader.onloadend = async () => {
-      if (!mountedRef.current) return;
+      // Save to DB regardless of mount state — user navigated away mid-recording
       const note = await saveVoiceNote({
         audioDataUrl: reader.result as string,
         durationS: Math.round(dur),
         attachedTo, attachedType, carnetId,
         transcript: finalTranscript,
       });
+      // Only update UI if still mounted
       if (!mountedRef.current) return;
+      const url = URL.createObjectURL(blob);
+      setPlaybackUrl(url);
       setSavedNote(note);
       setState("saved");
       onSaved?.(note);
