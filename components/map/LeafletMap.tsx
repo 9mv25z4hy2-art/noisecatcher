@@ -16,6 +16,28 @@ import "maplibre-gl/dist/maplibre-gl.css";
 // Labels can be switched per-locale via MapLibre setLayoutProperty.
 const MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
 
+// Android Chrome (ANGLE/Vulkan) throws a fatal worker error when a style paint/layout
+// property is null where a number is expected. Mac Chrome and iOS Safari coerce silently.
+// Fetch the style and replace top-level null values in paint/layout blocks with 0
+// before passing the object to MapLibre, so the worker never encounters them.
+async function fetchSanitizedStyle(url: string): Promise<object> {
+  const res = await fetch(url);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const style: any = await res.json();
+  if (Array.isArray(style.layers)) {
+    for (const layer of style.layers) {
+      for (const block of ["paint", "layout"] as const) {
+        if (layer[block] && typeof layer[block] === "object") {
+          for (const key of Object.keys(layer[block])) {
+            if (layer[block][key] === null) layer[block][key] = 0;
+          }
+        }
+      }
+    }
+  }
+  return style;
+}
+
 // Build a locale-aware text-field expression for OSM vector tile name properties.
 // Prefer the user's language (name:xx), fall back to local name, then English.
 function localeTextField(locale: string) {
@@ -75,6 +97,8 @@ export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDele
   const markersRef = useRef<any[]>([]);
   const pinLayerCleanupRef = useRef<(() => void) | null>(null);
   const [ready, setReady] = useState(false);
+  const onMapControlsRef = useRef(onMapControls);
+  onMapControlsRef.current = onMapControls;
 
   /* ── Map initialisation ──────────────────────────────── */
   useEffect(() => {
@@ -94,9 +118,12 @@ export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDele
       ml.setWorkerUrl("/maplibre-worker.js");
       mlRef.current = ml;
 
+      const sanitizedStyle = await fetchSanitizedStyle(MAP_STYLE_URL);
+      if (cancelled) return;
+
       const map = new ml.Map({
         container: containerRef.current!,
-        style: MAP_STYLE_URL,
+        style: sanitizedStyle,
         center: [0, 20],
         zoom: 2,
         attributionControl: false,
@@ -528,13 +555,14 @@ export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDele
 
   useEffect(() => {
     if (!ready) return;
-    onMapControls?.({
+    onMapControlsRef.current?.({
       zoomIn:   () => mapRef.current?.zoomIn(),
       zoomOut:  () => mapRef.current?.zoomOut(),
       locateMe,
       gpsPin,
     });
-  }, [ready, onMapControls, locateMe, gpsPin]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
 
   return (
     <div className="relative w-full h-full" style={{ pointerEvents: "auto" }}>

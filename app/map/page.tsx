@@ -43,6 +43,7 @@ export default function MapPage() {
 
   const { t } = useI18n();
   const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
+  const onAddPin = useCallback((lat: number, lng: number) => setPendingPin({ lat, lng }), []);
 
   // Window-level touchend capture — fires before MapLibre's non-passive listeners.
   // Detects taps on the map-page nav and navigates via window.location.href,
@@ -141,7 +142,7 @@ export default function MapPage() {
         <LeafletMap
           filterCategory={filterCategory}
           filterDb={filterDb}
-          onAddPin={(lat, lng) => setPendingPin({ lat, lng })}
+          onAddPin={onAddPin}
           onPinDeleted={refresh}
           refreshKey={refreshKey}
           densityMode={densityMode}
