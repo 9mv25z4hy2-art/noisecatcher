@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Circle, Download, Share2, Trash2, Mic, Flag } from "lucide-react";
+import { Circle, Download, Share2, Trash2, Mic, Flag, Play, Square } from "lucide-react";
 import {
   AudioRecorder as Recorder,
   downloadRecording,
@@ -34,6 +34,10 @@ export default function AudioRecorderPanel() {
   const [filename, setFilename] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [markers, setMarkers] = useState<RecordingMarker[]>([]);
+  const [isPlaying, setIsPlaying] = useState(false);
+  // Blob URL for in-app playback. iOS Safari can't play data: URLs as audio src,
+  // so a blob URL is required (same approach as VoiceNoteRecorder).
+  const [playbackUrl, setPlaybackUrl] = useState<string | null>(null);
   // Client-only capability detection must not run during the first render: on the
   // server MediaRecorder/navigator are absent, so the initial client render would
   // diverge from the SSR HTML → hydration mismatch. Gate detection on `mounted`,
@@ -43,6 +47,8 @@ export default function AudioRecorderPanel() {
   const canShare = mounted && typeof navigator !== "undefined" && "canShare" in navigator;
   const recorderRef = useRef<Recorder | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const mountedRef = useRef(true);
 
   function addMarker() {
     const label = `${formatDuration(elapsed)}`;
@@ -60,6 +66,7 @@ export default function AudioRecorderPanel() {
       (r) => {
         setRecording(r);
         setFilename(defaultFilename());
+        setPlaybackUrl((old) => { if (old) URL.revokeObjectURL(old); return URL.createObjectURL(r.blob); });
         setState("done");
         if (timerRef.current) clearInterval(timerRef.current);
       },
@@ -87,18 +94,42 @@ export default function AudioRecorderPanel() {
     if (timerRef.current) clearInterval(timerRef.current);
   }
 
+  function playRecording() {
+    if (!playbackUrl) return;
+    // Toggle: if already playing, stop.
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+      setIsPlaying(false);
+      return;
+    }
+    const audio = new Audio(playbackUrl);
+    audioRef.current = audio;
+    audio.onended = () => { audioRef.current = null; if (mountedRef.current) setIsPlaying(false); };
+    audio.play().catch(() => { audioRef.current = null; if (mountedRef.current) setIsPlaying(false); });
+    setIsPlaying(true);
+  }
+
   function discard() {
+    audioRef.current?.pause();
+    audioRef.current = null;
+    setIsPlaying(false);
+    setPlaybackUrl((old) => { if (old) URL.revokeObjectURL(old); return null; });
     setRecording(null);
     setFilename("");
     setState("idle");
   }
 
   useEffect(() => {
+    mountedRef.current = true;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     return () => {
+      mountedRef.current = false;
       recorderRef.current?.stop();
       if (timerRef.current) clearInterval(timerRef.current);
+      audioRef.current?.pause();
+      setPlaybackUrl((old) => { if (old) URL.revokeObjectURL(old); return null; });
     };
   }, []);
 
@@ -213,6 +244,13 @@ export default function AudioRecorderPanel() {
             </div>
 
             <div className="flex gap-2">
+              <button
+                onClick={playRecording}
+                aria-label={isPlaying ? "Stop playback" : "Play recording"}
+                className="flex items-center justify-center px-3 py-2 rounded-lg nc-btn-ghost text-sm transition-colors"
+              >
+                {isPlaying ? <Square className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+              </button>
               <button
                 onClick={() => downloadRecording(recording, filename)}
                 className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-semibold transition-colors"

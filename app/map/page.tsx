@@ -152,14 +152,27 @@ export default function MapPage() {
         />
       </div>
 
-      {/* ── Left cluster: analysis + export (contextual, bottom-left) ── */}
-      {(pinCount > 0 || hasGpsReports) && (
+      {/* ── Left cluster: analysis + export — always visible; each tool is
+          disabled with a hint until there's data to export / analyse ── */}
+      {(() => {
+        const exportEnabled = pinCount > 0;
+        const analysisEnabled = pinCount > 0 || hasGpsReports;
+        return (
         <div className="fixed z-[1000] flex flex-col gap-2 items-start nc-ctrl-b nc-ctrl-l">
 
+          {/* Hint shown while there is no data yet */}
+          {!exportEnabled && !analysisEnabled && (
+            <div
+              className="rounded-lg px-2.5 py-1.5 text-[10px] tracking-wider uppercase shadow-lg"
+              style={{ background: "var(--nc-bg-panel)", border: "1px solid var(--nc-border-mid)", color: "var(--nc-text-3)", fontFamily: "var(--font-display)", backdropFilter: "blur(8px)" }}
+            >
+              Drop a pin to enable
+            </div>
+          )}
+
           {/* Export icon button + overflow submenu */}
-          {pinCount > 0 && (
-            <div className="relative">
-              {showExportMenu && (
+          <div className="relative">
+              {exportEnabled && showExportMenu && (
                 <div
                   className="absolute bottom-12 left-0 flex flex-col overflow-hidden rounded-2xl shadow-xl mb-1"
                   style={{ background: "var(--nc-bg-raised)", border: "1px solid var(--nc-border-mid)", minWidth: 140 }}
@@ -188,24 +201,27 @@ export default function MapPage() {
                 </div>
               )}
               <button
-                onClick={() => setShowExportMenu((v) => !v)}
+                onClick={exportEnabled ? () => setShowExportMenu((v) => !v) : undefined}
+                disabled={!exportEnabled}
                 aria-label="Export pins"
+                title={exportEnabled ? undefined : "Drop a pin to enable"}
                 className="w-10 h-10 flex items-center justify-center rounded-2xl shadow-lg transition-colors"
                 style={{
                   background: showExportMenu ? "var(--nc-text)" : "var(--nc-bg-panel)",
                   color: showExportMenu ? "var(--nc-bg)" : "var(--nc-text-2)",
                   border: "1px solid var(--nc-border-mid)",
                   backdropFilter: "blur(8px)",
+                  opacity: exportEnabled ? 1 : 0.4,
+                  cursor: exportEnabled ? "pointer" : "not-allowed",
                 }}
               >
                 <Download className="w-4 h-4" />
               </button>
             </div>
-          )}
 
           {/* Analysis icon button + expandable panel */}
           <div className="relative">
-            {showAnalysis && (
+            {analysisEnabled && showAnalysis && (
               <div
                 className="absolute bottom-12 left-0 flex flex-col overflow-hidden rounded-2xl shadow-xl mb-1"
                 style={{ background: "var(--nc-bg-raised)", border: "1px solid var(--nc-border-mid)" }}
@@ -265,22 +281,27 @@ export default function MapPage() {
               </div>
             )}
             <button
-              onClick={() => setShowAnalysis((v) => !v)}
+              onClick={analysisEnabled ? () => setShowAnalysis((v) => !v) : undefined}
+              disabled={!analysisEnabled}
               aria-label="Analysis tools"
               aria-pressed={showAnalysis}
+              title={analysisEnabled ? undefined : "Drop a pin to enable"}
               className="w-10 h-10 flex items-center justify-center rounded-2xl shadow-lg transition-colors"
               style={{
                 background: showAnalysis ? "var(--nc-text)" : "var(--nc-bg-panel)",
                 color: showAnalysis ? "var(--nc-bg)" : "var(--nc-text-2)",
                 border: "1px solid var(--nc-border-mid)",
                 backdropFilter: "blur(8px)",
+                opacity: analysisEnabled ? 1 : 0.4,
+                cursor: analysisEnabled ? "pointer" : "not-allowed",
               }}
             >
               <BarChart2 className="w-4 h-4" />
             </button>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* ── Analysis panels ── */}
       {showTrend && (() => {
