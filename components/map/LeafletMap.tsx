@@ -377,9 +377,11 @@ export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDele
           const coords = (feat.geometry as GeoJSON.Point).coordinates as [number, number];
           const popup = new ml.Popup({ maxWidth: "280px", offset: 14 })
             .setLngLat(coords)
-            .setHTML(popupHtml)
-            .addTo(map);
+            .setHTML(popupHtml);
 
+          // MapLibre fires "open" synchronously inside addTo(), so this listener
+          // must be attached BEFORE addTo — otherwise the delete/share button
+          // handlers are never wired up (the reason a pin couldn't be removed).
           popup.on("open", () => {
             const deleteBtn = document.getElementById(`delete-pin-${pin.id}`);
             if (deleteBtn) {
@@ -407,6 +409,8 @@ export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDele
               }, { once: true });
             }
           });
+
+          popup.addTo(map);
         };
 
         const onClusterEnter = () => { map.getCanvas().style.cursor = "pointer"; };
