@@ -5,6 +5,7 @@ import Link from "next/link";
 import { loadPins, type NoisePin, getCategoryMeta } from "@/lib/pins";
 import { getThreshold } from "@/lib/thresholds";
 import { ABECEDAIRE } from "@/lib/abecedaire";
+import { SITE_DOMAIN } from "@/lib/config";
 import { FileText, Filter, BarChart2, Scale, Printer, ChevronRight, ChevronLeft, AlertTriangle, CheckCircle2, Users, BookOpen } from "lucide-react";
 
 // Abécédaire terms surfaced at each step
@@ -910,7 +911,7 @@ export default function DossierPage() {
             <section className="flex flex-col gap-2 border-t pt-4" style={{ borderColor: "var(--nc-border)" }}>
               <h2 className="te-label text-[9px] uppercase tracking-wider" style={{ color: "var(--nc-text-3)" }}>Methodological note</h2>
               <p className="te-label text-[9px] leading-relaxed" style={{ color: "var(--nc-text-3)" }}>
-                Measurements were collected using Noisecatcher (noisecatcher.vercel.app), an A-weighted (IEC 61672-1:2013) acoustic measurement PWA. Leq is computed as the energy-average (10·log₁₀(mean(10^(v/10)))) of all readings — the quantity used by WHO and EEA in health guidelines. Measurements made with an uncalibrated smartphone microphone carry an uncertainty of approximately ±10 dB; calibrated measurements ±3 dB (95% confidence). L10, L50, and L90 represent the dB levels exceeded 10%, 50%, and 90% of the time respectively. WHO Lden exceedances are computed by applying +5 dB to evening readings (19:00–23:00) and +10 dB to night readings (23:00–07:00) before comparing to the 53 dB threshold — this approximates the Lden weighting scheme used in the WHO 2018 Environmental Noise Guidelines and the EU Environmental Noise Directive. These measurements may be submitted as supporting evidence but are not a substitute for regulatory noise assessments performed by a qualified acoustician under formal measurement protocols (BS 4142, NF S31-010, VDI 2058, etc.).
+                Measurements were collected using Noisecatcher ({SITE_DOMAIN}), an A-weighted (IEC 61672-1:2013) acoustic measurement PWA. Leq is computed as the energy-average (10·log₁₀(mean(10^(v/10)))) of all readings — the quantity used by WHO and EEA in health guidelines. Measurements made with an uncalibrated smartphone microphone carry an uncertainty of approximately ±10 dB; calibrated measurements ±3 dB (95% confidence). L10, L50, and L90 represent the dB levels exceeded 10%, 50%, and 90% of the time respectively. WHO Lden exceedances are computed by applying +5 dB to evening readings (19:00–23:00) and +10 dB to night readings (23:00–07:00) before comparing to the 53 dB threshold — this approximates the Lden weighting scheme used in the WHO 2018 Environmental Noise Guidelines and the EU Environmental Noise Directive. These measurements may be submitted as supporting evidence but are not a substitute for regulatory noise assessments performed by a qualified acoustician under formal measurement protocols (BS 4142, NF S31-010, VDI 2058, etc.).
               </p>
             </section>
 

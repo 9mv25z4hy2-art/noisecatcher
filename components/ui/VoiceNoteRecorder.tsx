@@ -6,8 +6,6 @@ import { saveVoiceNote, deleteVoiceNote, updateVoiceNote, type VoiceNote } from 
 import { useI18n } from "@/lib/i18n/context";
 
 const MAX_S = 60;
-// Use device native rate — forcing 16 kHz mismatches iOS mic rate, producing silence
-const WAV_SAMPLE_RATE = 0; // placeholder; actual rate read from AudioContext at runtime
 
 // All iOS browsers (Safari, Chrome/CriOS, Firefox/FxiOS) use WebKit and share
 // the same MediaRecorder bug: moov atom written at end → blob unplayable.
@@ -79,20 +77,6 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const wavProcRef = useRef<any>(null);
 
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-      mediaRef.current?.stop();
-      wavProcRef.current?.disconnect();
-      wavCtxRef.current?.close();
-      if (timerRef.current) clearInterval(timerRef.current);
-      audioRef.current?.pause();
-      recognitionRef.current?.stop();
-      setPlaybackUrl((url) => { if (url) URL.revokeObjectURL(url); return null; });
-    };
-  }, []);
-
   const finishRecording = (blob: Blob, dur: number) => {
     const finalTranscript = transcriptRef.current.trim() || undefined;
     const reader = new FileReader();
@@ -139,6 +123,22 @@ export default function VoiceNoteRecorder({ attachedTo, attachedType, carnetId, 
       mediaRef.current = null;
     }
   };
+
+  // Declared after stopRecording so the cleanup references an already-initialised
+  // binding (react-hooks). This is the only effect, so its position among hooks
+  // is unchanged (all useState/useRef are declared above).
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      // stopRecording flushes WAV samples → finishRecording → saveVoiceNote (unconditional).
+      // mountedRef stays true during the flush so onaudioprocess keeps collecting until disconnect.
+      stopRecording();
+      mountedRef.current = false;
+      audioRef.current?.pause();
+      setPlaybackUrl((url) => { if (url) URL.revokeObjectURL(url); return null; });
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const startRecording = async () => {
     transcriptRef.current = "";

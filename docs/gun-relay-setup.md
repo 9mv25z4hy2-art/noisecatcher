@@ -36,7 +36,7 @@ pm2 start relay.js --name noisecatcher-relay
 
 ```nginx
 server {
-    server_name relay.noisecatcher.app;
+    server_name relay.noisecatcher.org;
     location / {
         proxy_pass http://localhost:8765;
         proxy_http_version 1.1;
@@ -53,7 +53,7 @@ server {
 Set the environment variable before build or in your deployment:
 
 ```bash
-NEXT_PUBLIC_GUN_PEERS=https://relay.noisecatcher.app/gun
+NEXT_PUBLIC_GUN_PEERS=https://relay.noisecatcher.org/gun
 ```
 
 `lib/gun.ts` already reads this variable and falls back to public peers if unset.

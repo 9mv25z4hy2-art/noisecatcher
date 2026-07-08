@@ -1,5 +1,6 @@
 import { getThreshold } from "./thresholds";
 import { db, type NoiseReport, type VoiceNote } from "./db";
+import { SITE_DOMAIN } from "./config";
 
 export type NoiseCategory =
   // Current categories (top-level source types)
@@ -197,7 +198,7 @@ export async function exportGeoJSON(pins: NoisePin[]): Promise<void> {
       note: "To verify: JSON.stringify(geojson.features) → SHA-256 → compare to this value.",
     },
     _measurement: {
-      instrument: "Noisecatcher — electroacoustic PWA (noisecatcher.vercel.app)",
+      instrument: `Noisecatcher — electroacoustic PWA (${SITE_DOMAIN})`,
       weighting: "A-weighted dB(A) — IEC 61672-1:2013",
       calibrationOffsetDb: calibrationOffset,
       calibrated: calibrationOffset !== 0,

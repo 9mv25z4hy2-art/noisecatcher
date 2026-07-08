@@ -10,6 +10,7 @@
  */
 
 import type { Metadata } from "next";
+import { SITE_DOMAIN } from "@/lib/config";
 
 export const metadata: Metadata = {
   title: "Noisecatcher — Field Pamphlet",
@@ -319,7 +320,7 @@ export default function PamphletPage() {
 
         {/* ── Footer ── */}
         <div className="footer-line">
-          Noisecatcher — noisecatcher.app &nbsp;·&nbsp; Politics of Noise research practice
+          Noisecatcher — {SITE_DOMAIN} &nbsp;·&nbsp; Politics of Noise research practice
           &nbsp;·&nbsp; Sylvain Souklaye &nbsp;·&nbsp; v0.5
         </div>
 

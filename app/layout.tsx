@@ -9,6 +9,7 @@ import { I18nProvider } from "@/lib/i18n/context";
 import FirstRunWelcome from "@/components/ui/FirstRunWelcome";
 import InstallBanner from "@/components/ui/InstallBanner";
 import PinsProvider from "@/components/ui/PinsProvider";
+import { SITE_URL } from "@/lib/config";
 
 const ibmMono = IBM_Plex_Mono({
   weight: ["400", "600", "700"],
@@ -18,6 +19,7 @@ const ibmMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "Noisecatcher",
   description:
     "Measure noise pollution in real time. Understand its health consequences. Map it. Fight it.",

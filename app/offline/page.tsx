@@ -28,7 +28,7 @@ export default function OfflinePage() {
           ["Meter", "/meter"],
           ["Map", "/map"],
           ["Notebooks", "/carnets"],
-          ["Abécédaire", "/abecedaire"],
+          ["Glossary", "/abecedaire"],
         ].map(([label, href]) => (
           <Link
             key={href}

@@ -98,7 +98,10 @@ export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDele
   const pinLayerCleanupRef = useRef<(() => void) | null>(null);
   const [ready, setReady] = useState(false);
   const onMapControlsRef = useRef(onMapControls);
-  onMapControlsRef.current = onMapControls;
+  // Keep the ref current without touching it during render (react-hooks/refs).
+  // Runs before the [ready] effect below (declaration order), so that effect
+  // always reads the latest callback.
+  useEffect(() => { onMapControlsRef.current = onMapControls; });
 
   /* ── Map initialisation ──────────────────────────────── */
   useEffect(() => {
@@ -127,6 +130,13 @@ export default function NoiseMap({ filterCategory, filterDb, onAddPin, onPinDele
         center: [0, 20],
         zoom: 2,
         attributionControl: false,
+      });
+
+      // Never fail silently: surface any MapLibre error (style/source/tile/worker) to
+      // the console instead of leaving a blank map with no signal.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      map.on("error", (e: any) => {
+        console.error("Noisecatcher map error:", e?.error?.message || e?.error || e);
       });
 
       map.on("load", () => {

@@ -860,7 +860,7 @@ export default function HelpPage() {
           Explore further
         </p>
         {[
-          { href: "/abecedaire", label: "Abécedaire — noise concepts & definitions", icon: BookOpen },
+          { href: "/abecedaire", label: "Glossary — noise concepts & definitions", icon: BookOpen },
           { href: "/carnets",    label: "Notebooks — your field notebooks",          icon: BookMarked },
           { href: "/act",        label: "Act — what to do with your measurements",   icon: Zap },
           { href: "/about",      label: "About — methodology & technical notes",     icon: HelpCircle },

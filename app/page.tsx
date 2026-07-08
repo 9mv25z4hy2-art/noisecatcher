@@ -162,7 +162,7 @@ export default function LandingPage() {
       >
         {[
           ["Field Pamphlet", "/pamphlet"],
-          ["Abécédaire", "/abecedaire"],
+          ["Glossary", "/abecedaire"],
           ["Act", "/act"],
           ["About", "/about"],
           ["Help", "/help"],

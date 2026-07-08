@@ -33,9 +33,14 @@ export default function AudioRecorderPanel() {
   const [recording, setRecording] = useState<Recording | null>(null);
   const [filename, setFilename] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [canShare] = useState(() => typeof navigator !== "undefined" && "canShare" in navigator);
   const [markers, setMarkers] = useState<RecordingMarker[]>([]);
-  const [mimeType] = useState(() => getSupportedMimeType());
+  // Client-only capability detection must not run during the first render: on the
+  // server MediaRecorder/navigator are absent, so the initial client render would
+  // diverge from the SSR HTML → hydration mismatch. Gate detection on `mounted`,
+  // which is false during SSR and the first client render, then true after mount.
+  const [mounted, setMounted] = useState(false);
+  const mimeType = mounted ? getSupportedMimeType() : "";
+  const canShare = mounted && typeof navigator !== "undefined" && "canShare" in navigator;
   const recorderRef = useRef<Recorder | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -89,13 +94,15 @@ export default function AudioRecorderPanel() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
     return () => {
       recorderRef.current?.stop();
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);
 
-  if (!mimeType && typeof MediaRecorder === "undefined") {
+  if (mounted && !mimeType && typeof MediaRecorder === "undefined") {
     return (
       <p className="text-xs text-center" style={{ color: "var(--nc-text-3)" }}>
         {t.audio_unsupported}
