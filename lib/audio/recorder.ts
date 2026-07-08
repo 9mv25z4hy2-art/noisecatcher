@@ -107,6 +107,35 @@ export function encodeWav(samples: Float32Array, sampleRate: number): Blob {
   return new Blob([buffer], { type: "audio/wav" });
 }
 
+// 16-bit integer PCM WAV (format code 1) — the maximally compatible variant.
+// Used for the iOS primary recording: this exact format is what
+// VoiceNoteRecorder ships and is proven to play back in iOS Safari/Files.
+export function encodeWavInt16(samples: Float32Array, sampleRate: number): Blob {
+  const dataLength = samples.length * 2;
+  const buffer = new ArrayBuffer(44 + dataLength);
+  const view = new DataView(buffer);
+  writeString(view, 0,  "RIFF");
+  view.setUint32(4, 36 + dataLength, true);
+  writeString(view, 8,  "WAVE");
+  writeString(view, 12, "fmt ");
+  view.setUint32(16, 16, true);          // fmt chunk size
+  view.setUint16(20, 1,  true);          // format: integer PCM
+  view.setUint16(22, 1,  true);          // mono
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true); // byte rate
+  view.setUint16(32, 2,  true);          // block align
+  view.setUint16(34, 16, true);          // bits per sample
+  writeString(view, 36, "data");
+  view.setUint32(40, dataLength, true);
+  let o = 44;
+  for (let i = 0; i < samples.length; i++) {
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    view.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+    o += 2;
+  }
+  return new Blob([buffer], { type: "audio/wav" });
+}
+
 function mergeFloat32(chunks: Float32Array[]): Float32Array {
   const total = chunks.reduce((s, c) => s + c.length, 0);
   const out = new Float32Array(total);
@@ -272,7 +301,8 @@ export class AudioRecorder {
     }
     const samples = mergeFloat32(this.monoBuffers);
     this.monoBuffers = [];
-    const blob = encodeWav(samples, this.capturedSampleRate);
+    // int16 PCM — the format proven to play back on iOS (see encodeWavInt16).
+    const blob = encodeWavInt16(samples, this.capturedSampleRate);
     await this.complete(blob, "audio/wav");
   }
 
