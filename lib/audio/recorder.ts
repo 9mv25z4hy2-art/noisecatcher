@@ -1,8 +1,15 @@
 // AudioRecorder — captures microphone audio to a downloadable file.
-// Uses MediaRecorder API with the best codec available on the current browser.
-// Chrome/Edge: audio/webm;codecs=opus (.webm)
-// Firefox:     audio/ogg;codecs=opus  (.ogg)
-// Safari 17+:  audio/mp4              (.m4a)
+//
+// Non-iOS (Chrome/Edge/Firefox/desktop Safari): MediaRecorder with the best
+// codec available — audio/webm;codecs=opus (.webm), audio/ogg;codecs=opus
+// (.ogg), or audio/mp4 (.m4a).
+//
+// iOS (iPhone/iPad Safari + all iOS browsers, which share the WebKit engine):
+// MediaRecorder reports webm as "supported" for RECORDING, but iOS has no webm
+// DECODER, so the resulting file is unplayable on the very device that made it.
+// iOS MediaRecorder mp4 also writes the moov atom at the end → unreliable
+// playback. So on iOS we bypass MediaRecorder entirely and capture PCM via the
+// Web Audio API, encoding a WAV — which iOS plays natively.
 //
 // If the microphone delivers 2+ channels, per-channel WAV files are also
 // captured via Web Audio ChannelSplitterNode and exposed on Recording.channels.
@@ -39,18 +46,33 @@ const PREFERRED_TYPES = [
   "audio/mp4",
 ];
 
+// All iOS browsers use WebKit and cannot decode webm; iPadOS 13+ reports as
+// "MacIntel" with touch points, so detect that too.
+export function isIOS(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+  );
+}
+
 export function getSupportedMimeType(): string {
+  // iOS captures WAV via Web Audio (see class below) — it needs no MediaRecorder,
+  // so return before the MediaRecorder guard.
+  if (isIOS()) return "audio/wav";
   if (typeof MediaRecorder === "undefined") return "";
   return PREFERRED_TYPES.find((t) => MediaRecorder.isTypeSupported(t)) ?? "";
 }
 
 export function mimeToExtension(mimeType: string): string {
+  if (mimeType.includes("wav")) return "wav";
   if (mimeType.includes("ogg")) return "ogg";
   if (mimeType.includes("mp4")) return "m4a";
   return "webm";
 }
 
 export function mimeToLabel(mimeType: string): string {
+  if (mimeType.includes("wav")) return "WAV";
   if (mimeType.includes("ogg")) return "Ogg/Opus";
   if (mimeType.includes("mp4")) return "M4A/AAC";
   return "WebM/Opus";
@@ -85,6 +107,14 @@ export function encodeWav(samples: Float32Array, sampleRate: number): Blob {
   return new Blob([buffer], { type: "audio/wav" });
 }
 
+function mergeFloat32(chunks: Float32Array[]): Float32Array {
+  const total = chunks.reduce((s, c) => s + c.length, 0);
+  const out = new Float32Array(total);
+  let off = 0;
+  for (const c of chunks) { out.set(c, off); off += c.length; }
+  return out;
+}
+
 // Channel name maps: 2-ch = binaural L/R, 4-ch = ambisonic W/X/Y/Z
 const CH_NAMES_2 = ["L", "R"] as const;
 const CH_NAMES_4 = ["W", "X", "Y", "Z"] as const;
@@ -105,6 +135,12 @@ export class AudioRecorder {
   private capturedChannelCount = 0;
   private capturedSampleRate = 48000;
 
+  // iOS WAV path — mono mix captured via Web Audio (iOS can't play webm)
+  private useWavPath = false;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private monoProc: any = null;
+  private monoBuffers: Float32Array[] = [];
+
   constructor(
     onComplete: (recording: Recording) => void,
     onError: (msg: string) => void
@@ -123,15 +159,32 @@ export class AudioRecorder {
         },
       });
 
-      // ── Web Audio channel capture ─────────────────────────────────────
+      this.useWavPath = isIOS();
+      this.chunks = [];
+      this.markers = [];
+      this.startTime = Date.now();
+
+      // ── Web Audio capture (per-channel + iOS mono) ───────────────────
       this.channelBuffers = [];
       this.capturedChannelCount = 0;
+      this.monoBuffers = [];
       try {
         const ctx = new AudioContext();
         this.audioCtx = ctx;
         this.capturedSampleRate = ctx.sampleRate;
         const source = ctx.createMediaStreamSource(this.stream);
         const nChannels = source.channelCount;
+
+        // iOS: capture a mono downmix as the primary WAV recording.
+        if (this.useWavPath) {
+          const proc = ctx.createScriptProcessor(4096, 1, 1);
+          proc.onaudioprocess = (e: AudioProcessingEvent) => {
+            this.monoBuffers.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+          };
+          source.connect(proc);
+          proc.connect(ctx.destination); // must be connected to fire onaudioprocess
+          this.monoProc = proc;
+        }
 
         if (nChannels >= 2) {
           this.capturedChannelCount = nChannels;
@@ -153,17 +206,25 @@ export class AudioRecorder {
           }
         }
       } catch {
-        // Non-fatal: proceed without channel capture
+        // Non-fatal on non-iOS (MediaRecorder still runs). On iOS the WAV path
+        // IS the recording, so a Web Audio failure means we can't capture.
         this.audioCtx = null;
         this.capturedChannelCount = 0;
+        if (this.useWavPath) {
+          this.onError("Could not start recording on this device.");
+          this.cleanup();
+          throw new Error("web-audio-unavailable");
+        }
       }
 
-      // ── MediaRecorder (merged stream) ─────────────────────────────────
+      // ── iOS: no MediaRecorder — the WAV path above is the recording ───
+      if (this.useWavPath) {
+        return;
+      }
+
+      // ── MediaRecorder (non-iOS) ───────────────────────────────────────
       const mimeType = getSupportedMimeType();
       this.recorder = new MediaRecorder(this.stream, mimeType ? { mimeType } : {});
-      this.chunks = [];
-      this.markers = [];
-      this.startTime = Date.now();
 
       this.recorder.ondataavailable = (e) => {
         if (e.data.size > 0) this.chunks.push(e.data);
@@ -172,45 +233,7 @@ export class AudioRecorder {
       this.recorder.onstop = async () => {
         const finalMime = this.recorder?.mimeType ?? mimeType ?? "audio/webm";
         const blob = new Blob(this.chunks, { type: finalMime });
-        const durationSeconds = Math.round((Date.now() - this.startTime) / 1000);
-
-        // SHA-256 of the blob computed at capture, before any export or download.
-        // Gives the user a verifiable fingerprint of the unmodified recording.
-        let blobSha256: string | undefined;
-        try {
-          const buf = await blob.arrayBuffer();
-          const hashBuf = await crypto.subtle.digest("SHA-256", buf);
-          blobSha256 = Array.from(new Uint8Array(hashBuf))
-            .map((b) => b.toString(16).padStart(2, "0"))
-            .join("");
-        } catch { /* non-fatal: subtle not available in some contexts */ }
-
-        // Build per-channel WAV blobs
-        let channels: ChannelBlobs | undefined;
-        const nCh = this.capturedChannelCount;
-        if (nCh >= 2 && this.channelBuffers.some((b) => b.length > 0)) {
-          channels = {};
-          const names = nCh >= 4 ? CH_NAMES_4 : CH_NAMES_2;
-          for (let ch = 0; ch < Math.min(nCh, names.length); ch++) {
-            const chunks = this.channelBuffers[ch] ?? [];
-            const totalLen = chunks.reduce((s, c) => s + c.length, 0);
-            const samples = new Float32Array(totalLen);
-            let off = 0;
-            for (const chunk of chunks) { samples.set(chunk, off); off += chunk.length; }
-            (channels as Record<string, Blob>)[names[ch]] = encodeWav(samples, this.capturedSampleRate);
-          }
-        }
-
-        this.onComplete({
-          blob,
-          mimeType: finalMime,
-          durationSeconds,
-          markers: [...this.markers],
-          channels,
-          channelCount: nCh > 0 ? nCh : undefined,
-          blobSha256,
-        });
-        this.cleanup();
+        await this.complete(blob, finalMime);
       };
 
       this.recorder.onerror = () => {
@@ -223,7 +246,7 @@ export class AudioRecorder {
       if (err instanceof Error) {
         if (err.name === "NotAllowedError") {
           this.onError("Microphone access denied.");
-        } else {
+        } else if (err.message !== "web-audio-unavailable") {
           this.onError(`Could not start recording: ${err.message}`);
         }
       }
@@ -232,18 +255,74 @@ export class AudioRecorder {
   }
 
   stop(): void {
+    if (this.useWavPath) {
+      // iOS path — finalize the WAV here (there is no MediaRecorder.onstop).
+      void this.finishWavRecording();
+      return;
+    }
     if (this.recorder?.state === "recording") {
       this.recorder.stop();
     }
   }
 
+  private async finishWavRecording(): Promise<void> {
+    if (this.monoProc) {
+      try { this.monoProc.disconnect(); } catch { /* already gone */ }
+      this.monoProc = null;
+    }
+    const samples = mergeFloat32(this.monoBuffers);
+    this.monoBuffers = [];
+    const blob = encodeWav(samples, this.capturedSampleRate);
+    await this.complete(blob, "audio/wav");
+  }
+
+  // Shared completion: SHA-256, per-channel WAVs, callback, cleanup.
+  private async complete(blob: Blob, mimeType: string): Promise<void> {
+    const durationSeconds = Math.round((Date.now() - this.startTime) / 1000);
+
+    // SHA-256 of the blob computed at capture, before any export or download.
+    // Gives the user a verifiable fingerprint of the unmodified recording.
+    let blobSha256: string | undefined;
+    try {
+      const buf = await blob.arrayBuffer();
+      const hashBuf = await crypto.subtle.digest("SHA-256", buf);
+      blobSha256 = Array.from(new Uint8Array(hashBuf))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+    } catch { /* non-fatal: subtle not available in some contexts */ }
+
+    // Build per-channel WAV blobs
+    let channels: ChannelBlobs | undefined;
+    const nCh = this.capturedChannelCount;
+    if (nCh >= 2 && this.channelBuffers.some((b) => b.length > 0)) {
+      channels = {};
+      const names = nCh >= 4 ? CH_NAMES_4 : CH_NAMES_2;
+      for (let ch = 0; ch < Math.min(nCh, names.length); ch++) {
+        const samples = mergeFloat32(this.channelBuffers[ch] ?? []);
+        (channels as Record<string, Blob>)[names[ch]] = encodeWav(samples, this.capturedSampleRate);
+      }
+    }
+
+    this.onComplete({
+      blob,
+      mimeType,
+      durationSeconds,
+      markers: [...this.markers],
+      channels,
+      channelCount: nCh > 0 ? nCh : undefined,
+      blobSha256,
+    });
+    this.cleanup();
+  }
+
   addMarker(label: string): void {
-    if (this.recorder?.state === "recording") {
+    if (this.isRecording) {
       this.markers.push({ timeMs: Date.now() - this.startTime, label });
     }
   }
 
   get isRecording(): boolean {
+    if (this.useWavPath) return this.monoProc !== null;
     return this.recorder?.state === "recording";
   }
 
@@ -253,6 +332,11 @@ export class AudioRecorder {
     this.recorder = null;
     this.chunks = [];
     this.channelBuffers = [];
+    this.monoBuffers = [];
+    if (this.monoProc) {
+      try { this.monoProc.disconnect(); } catch { /* already gone */ }
+      this.monoProc = null;
+    }
     if (this.audioCtx) {
       this.audioCtx.close().catch(() => {});
       this.audioCtx = null;
