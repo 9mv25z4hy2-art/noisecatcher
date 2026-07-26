@@ -169,6 +169,7 @@ export class AudioRecorder {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private monoProc: any = null;
   private monoBuffers: Float32Array[] = [];
+  private keepAlive: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     onComplete: (recording: Recording) => void,
@@ -201,6 +202,17 @@ export class AudioRecorder {
         const ctx = new AudioContext();
         this.audioCtx = ctx;
         this.capturedSampleRate = ctx.sampleRate;
+
+        // iOS silently suspends the AudioContext (screen dimming, audio-session
+        // interruptions, background throttling), which stops ScriptProcessorNode
+        // capture even though the recording UI keeps counting. Resume on any
+        // suspend, and poll every 2s as a belt-and-suspenders keepalive so a long
+        // recording doesn't cut out after ~1 minute.
+        ctx.onstatechange = () => { if (ctx.state === "suspended") ctx.resume().catch(() => {}); };
+        this.keepAlive = setInterval(() => {
+          if (this.audioCtx && this.audioCtx.state === "suspended") this.audioCtx.resume().catch(() => {});
+        }, 2000);
+
         const source = ctx.createMediaStreamSource(this.stream);
         const nChannels = source.channelCount;
 
@@ -357,6 +369,7 @@ export class AudioRecorder {
   }
 
   private cleanup(): void {
+    if (this.keepAlive) { clearInterval(this.keepAlive); this.keepAlive = null; }
     this.stream?.getTracks().forEach((t) => t.stop());
     this.stream = null;
     this.recorder = null;
