@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from "dexie";
+import { lsGet, lsSet } from "./storage";
 import type { NoisePin } from "./pins";
 
 export interface NoiseReport {
@@ -99,15 +100,15 @@ const MIGRATED_KEY = "nc_idb_migrated";
 
 export async function migrateLegacyPins(): Promise<void> {
   if (typeof window === "undefined") return;
-  if (localStorage.getItem(MIGRATED_KEY)) return;
+  if (lsGet(MIGRATED_KEY)) return;
   try {
-    const raw = localStorage.getItem(LEGACY_KEY);
+    const raw = lsGet(LEGACY_KEY);
     if (raw) {
       const legacy = JSON.parse(raw) as NoisePin[];
       if (legacy.length > 0) await db.pins.bulkPut(legacy);
     }
   } catch { /* proceed without migration */ }
-  localStorage.setItem(MIGRATED_KEY, "1");
+  lsSet(MIGRATED_KEY, "1");
 }
 
 // ── Reports ─────────────────────────────────────────────

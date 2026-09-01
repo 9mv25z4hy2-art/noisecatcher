@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { lsGet, lsSet } from "../storage";
 import { LOCALES, LOCALE_ORDER, type Locale, type LocaleStrings } from "./locales";
 
 const STORAGE_KEY = "noisecatcher_locale";
@@ -42,21 +43,43 @@ function applyLocale(l: Locale) {
   }
 }
 
-export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => {
-    if (typeof localStorage === "undefined") return "en";
-    const stored = localStorage.getItem(STORAGE_KEY) as Locale | null;
-    return stored && LOCALE_ORDER.includes(stored) ? stored : "en";
-  });
+export function I18nProvider({
+  children,
+  initialLocale = "en",
+}: {
+  children: ReactNode;
+  initialLocale?: Locale;
+}) {
+  // Initialise from the server-provided locale (read from the cookie in the
+  // root layout). SSR and the first client render therefore use the SAME locale,
+  // which avoids the hydration mismatch that reading localStorage during render
+  // caused for every non-English user.
+  const [locale, setLocaleState] = useState<Locale>(initialLocale);
 
   // Keep dir/lang attributes in sync with locale
   useEffect(() => {
     applyLocale(locale);
   }, [locale]);
 
+  // Migrate a pre-cookie locale that only exists in localStorage: apply it once
+  // and write the cookie so future SSR renders in the right language. Runs after
+  // mount, so it does not affect hydration.
+  useEffect(() => {
+    const stored = lsGet(STORAGE_KEY) as Locale | null;
+    if (stored && LOCALE_ORDER.includes(stored) && stored !== locale) {
+      setLocale(stored);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function setLocale(l: Locale) {
     setLocaleState(l);
-    localStorage.setItem(STORAGE_KEY, l);
+    lsSet(STORAGE_KEY, l);
+    // The cookie is what the server reads to SSR the correct language (same
+    // mechanism as nc-theme) — this is what keeps every section consistent.
+    try {
+      document.cookie = `${STORAGE_KEY}=${l}; path=/; max-age=31536000; SameSite=Lax`;
+    } catch { /* cookies blocked — in-session state still updates */ }
     applyLocale(l);
   }
 

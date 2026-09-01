@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { lsGet, lsSet } from "@/lib/storage";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mic, MicOff, AlertTriangle, Info, MapPin, SlidersHorizontal, Headphones, FileText, BellRing, BellOff, Wand2, Share2, Check } from "lucide-react";
@@ -75,7 +76,7 @@ export default function NoiseMeter() {
   // Pins live in IndexedDB via lib/db.ts — two different storage tiers by design.
   const [calibrationOffset, setCalibrationOffset] = useState(() => {
     if (typeof localStorage === "undefined") return 0;
-    const stored = localStorage.getItem("noisecatcher_calibration_offset");
+    const stored = lsGet("noisecatcher_calibration_offset");
     return stored ? Number(stored) : 0;
   });
   const [showCalibration, setShowCalibration] = useState(false);
@@ -110,13 +111,13 @@ export default function NoiseMeter() {
 
   // ── Auto-lock notice (dismissed once per install) ────────────────────────────
   const [autoLockDismissed, setAutoLockDismissed] = useState(() =>
-    typeof localStorage !== "undefined" && localStorage.getItem("nc_autolock_dismissed") === "1"
+    typeof localStorage !== "undefined" && lsGet("nc_autolock_dismissed") === "1"
   );
 
   // ── Expert mode ──────────────────────────────────────────────────────────────
   const [expertMode, setExpertMode] = useState(() => {
     if (typeof localStorage === "undefined") return false;
-    return localStorage.getItem("nc_expert_mode") === "1";
+    return lsGet("nc_expert_mode") === "1";
   });
 
   // ── Continuous threshold alert ───────────────────────────────────────────────
@@ -730,7 +731,7 @@ export default function NoiseMeter() {
             onClick={() => {
               const next = !expertMode;
               setExpertMode(next);
-              localStorage.setItem("nc_expert_mode", next ? "1" : "0");
+              lsSet("nc_expert_mode", next ? "1" : "0");
             }}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded te-label text-[10px] transition-colors"
             style={{
@@ -1063,7 +1064,7 @@ export default function NoiseMeter() {
             To keep the screen on during measurement: <strong>Settings → Display &amp; Brightness → Auto-Lock → Never</strong>. Restore after use.
           </span>
           <button
-            onClick={() => { setAutoLockDismissed(true); localStorage.setItem("nc_autolock_dismissed", "1"); }}
+            onClick={() => { setAutoLockDismissed(true); lsSet("nc_autolock_dismissed", "1"); }}
             className="shrink-0 ml-auto pl-2"
             aria-label="Dismiss"
             style={{ color: "var(--nc-text-3)" }}

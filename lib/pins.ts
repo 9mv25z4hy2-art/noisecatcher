@@ -1,4 +1,5 @@
 import { getThreshold } from "./thresholds";
+import { lsGet } from "./storage";
 import { db, type NoiseReport, type VoiceNote } from "./db";
 import { SITE_DOMAIN } from "./config";
 
@@ -185,7 +186,7 @@ export async function exportGeoJSON(pins: NoisePin[]): Promise<void> {
 
   const featuresJson = JSON.stringify(features);
   const hash = await sha256hex(featuresJson);
-  const calibrationOffset = parseFloat(localStorage.getItem("noisecatcher_calibration_offset") ?? "0") || 0;
+  const calibrationOffset = parseFloat(lsGet("noisecatcher_calibration_offset") ?? "0") || 0;
 
   const geojson = {
     type: "FeatureCollection",

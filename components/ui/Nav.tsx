@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { lsSet } from "@/lib/storage";
 import { usePathname } from "next/navigation";
 import { Mic, Map, BookOpen, Info, Zap, Sun, Moon, Languages, HelpCircle, BookMarked, FlaskConical, FileText, TrendingUp } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
@@ -22,7 +23,7 @@ function useTheme() {
     } else {
       document.documentElement.classList.add("light");
     }
-    localStorage.setItem("nc-theme", next);
+    lsSet("nc-theme", next);
     document.cookie = `nc-theme=${next}; path=/; max-age=31536000; SameSite=Lax`;
     setDark(isLight);
   }

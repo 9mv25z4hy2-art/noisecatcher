@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { lsGet } from "@/lib/storage";
 import { X, LocateFixed, Camera, Mic, Ear } from "lucide-react";
 import { savePin, WEEKDAYS, currentTimeString, compressPhoto } from "@/lib/pins";
 import { loadCarnets } from "@/lib/db";
@@ -27,7 +28,7 @@ export default function PinForm({ lat: initLat, lng: initLng, defaultDb, onClose
   const [lng, setLng] = useState(initLng);
   const [db, setDb] = useState(() => {
     if (defaultDb !== undefined) return defaultDb;
-    const saved = typeof window !== "undefined" ? localStorage.getItem("noisecatcher_last_db") : null;
+    const saved = typeof window !== "undefined" ? lsGet("noisecatcher_last_db") : null;
     return saved ? Math.min(130, Math.max(20, Number(saved))) : 60;
   });
   const [category, setCategory] = useState<NoiseCategory>("traffic");

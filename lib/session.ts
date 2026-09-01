@@ -14,6 +14,7 @@
 // the intersection of two hyperbolas estimates the source position.
 
 import { getGun } from "./gun";
+import { lsGet, lsSet } from "./storage";
 
 export const SESSION_GRAPH_KEY = "noisecatcher/v1/sessions";
 const DEVICE_ID_KEY = "nc_device_id";
@@ -26,10 +27,10 @@ const PEER_STALE_INACTIVE_MS = 20000;
 
 export function getDeviceId(): string {
   if (typeof window === "undefined") return "server";
-  let id = localStorage.getItem(DEVICE_ID_KEY);
+  let id = lsGet(DEVICE_ID_KEY);
   if (!id) {
     id = Math.random().toString(36).slice(2, 8).toUpperCase();
-    localStorage.setItem(DEVICE_ID_KEY, id);
+    lsSet(DEVICE_ID_KEY, id);
   }
   return id;
 }

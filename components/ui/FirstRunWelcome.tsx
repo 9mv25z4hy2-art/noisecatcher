@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { lsGet, lsSet } from "@/lib/storage";
 import Link from "next/link";
 import { Mic, HelpCircle, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
@@ -11,7 +12,7 @@ export default function FirstRunWelcome() {
   const { t } = useI18n();
   const [visible, setVisible] = useState(false);
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => setVisible(!localStorage.getItem(STORAGE_KEY)), []);
+  useEffect(() => setVisible(!lsGet(STORAGE_KEY)), []);
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = "nc-welcome-title";
 
@@ -41,7 +42,7 @@ export default function FirstRunWelcome() {
   }, [visible]);
 
   function dismiss() {
-    localStorage.setItem(STORAGE_KEY, "1");
+    lsSet(STORAGE_KEY, "1");
     setVisible(false);
   }
 

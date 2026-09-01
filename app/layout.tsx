@@ -6,6 +6,7 @@ import Nav from "@/components/ui/Nav";
 import LayoutFooter from "@/components/ui/LayoutFooter";
 import ServiceWorkerRegistration from "@/components/ui/ServiceWorkerRegistration";
 import { I18nProvider } from "@/lib/i18n/context";
+import { LOCALES, LOCALE_ORDER, type Locale } from "@/lib/i18n/locales";
 import FirstRunWelcome from "@/components/ui/FirstRunWelcome";
 import InstallBanner from "@/components/ui/InstallBanner";
 import PinsProvider from "@/components/ui/PinsProvider";
@@ -54,9 +55,19 @@ export default async function RootLayout({
   const themeCookie = cookieStore.get("nc-theme")?.value;
   const themeClass = themeCookie === "light" ? "light" : "";
 
+  // Read the locale cookie server-side so the initial HTML renders in the user's
+  // language (and correct dir) — matching the client, so no hydration mismatch
+  // and no English flash for non-English users.
+  const localeCookie = cookieStore.get("noisecatcher_locale")?.value;
+  const locale: Locale = (LOCALE_ORDER as readonly string[]).includes(localeCookie ?? "")
+    ? (localeCookie as Locale)
+    : "en";
+  const dir = LOCALES[locale].dir;
+
   return (
     <html
-      lang="en"
+      lang={locale}
+      dir={dir}
       className={[ibmMono.variable, themeClass].filter(Boolean).join(" ")}
       data-scroll-behavior="smooth"
     >
@@ -75,7 +86,7 @@ export default async function RootLayout({
         <ServiceWorkerRegistration />
         {/* Skip-to-content: visible only on keyboard focus */}
         <a href="#nc-main" className="skip-link">Skip to main content</a>
-        <I18nProvider>
+        <I18nProvider initialLocale={locale}>
           <PinsProvider>
             <FirstRunWelcome />
             <Nav />

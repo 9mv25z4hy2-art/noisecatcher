@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { lsGet, lsSet } from "@/lib/storage";
 import { Download, X, Share } from "lucide-react";
 
 type Platform = "android" | "ios" | "desktop" | null;
@@ -24,7 +25,7 @@ type BeforeInstallPromptEvent = Event & { prompt: () => Promise<void>; userChoic
 export default function InstallBanner() {
   const [platform] = useState<Platform>(() => {
     if (typeof window === "undefined") return null;
-    if (localStorage.getItem(STORAGE_KEY)) return null;
+    if (lsGet(STORAGE_KEY)) return null;
     return detectPlatform();
   });
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -52,7 +53,7 @@ export default function InstallBanner() {
   }, [platform]);
 
   function dismiss() {
-    localStorage.setItem(STORAGE_KEY, "1");
+    lsSet(STORAGE_KEY, "1");
     setVisible(false);
   }
 

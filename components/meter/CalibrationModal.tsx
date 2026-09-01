@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { lsSet, lsRemove } from "@/lib/storage";
 import { X, Mic } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { getDeviceProfile } from "@/lib/deviceCalibration";
@@ -51,7 +52,7 @@ export default function CalibrationModal({ currentDb, onCalibrate, onClose }: Pr
 
   function applyOffset(offset: number) {
     const clamped = Math.max(-35, Math.min(35, offset));
-    localStorage.setItem("noisecatcher_calibration_offset", String(clamped));
+    lsSet("noisecatcher_calibration_offset", String(clamped));
     setAppliedOffset(clamped);
     setDone(true);
     onCalibrate(clamped);
@@ -77,7 +78,7 @@ export default function CalibrationModal({ currentDb, onCalibrate, onClose }: Pr
   }
 
   function handleReset() {
-    localStorage.removeItem("noisecatcher_calibration_offset");
+    lsRemove("noisecatcher_calibration_offset");
     setAppliedOffset(0);
     setDone(true);
     onCalibrate(0);
