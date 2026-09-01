@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Noisecatcher — live sound level</title>
+<style>
+  :root {
+    --bg: #0a0a0a; --panel: #111; --text: #ededed; --dim: rgba(255,255,255,.55);
+    --border: rgba(255,255,255,.10);
+    --safe: #22c55e; --caution: #eab308; --dangerous: #f97316; --critical: #ef4444; --extreme: #7c3aed;
+    --font: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--font);
+    display: flex; align-items: center; justify-content: center;
+    -webkit-font-smoothing: antialiased; overflow: hidden;
+  }
+  .widget {
+    width: 100%; max-width: 340px; padding: 20px; display: flex; flex-direction: column; gap: 14px; align-items: center;
+  }
+  .brand { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--dim); display: flex; align-items: center; gap: 7px; }
+  .brand .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--safe); }
+  .readout { display: flex; align-items: baseline; gap: 8px; font-variant-numeric: tabular-nums; }
+  .db { font-size: 68px; font-weight: 700; line-height: 1; letter-spacing: -2px; color: var(--dim); transition: color .25s; }
+  .unit { font-size: 16px; color: var(--dim); letter-spacing: 1px; }
+  .label { font-size: 12px; letter-spacing: .22em; text-transform: uppercase; min-height: 15px; color: var(--dim); transition: color .25s; }
+  .bar { width: 100%; height: 8px; border-radius: 6px; background: rgba(255,255,255,.08); overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 0%; border-radius: 6px; transition: width .12s linear, background .25s; background: var(--safe); }
+  .scale { width: 100%; display: flex; justify-content: space-between; font-size: 9px; color: rgba(255,255,255,.35); letter-spacing: 1px; }
+  button {
+    font-family: var(--font); font-size: 14px; font-weight: 600; letter-spacing: .04em;
+    background: var(--text); color: var(--bg); border: 0; border-radius: 999px;
+    padding: 11px 22px; cursor: pointer; transition: opacity .2s; -webkit-tap-highlight-color: transparent;
+  }
+  button.ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  button:active { opacity: .8; }
+  .note { font-size: 10px; color: rgba(255,255,255,.4); text-align: center; line-height: 1.5; }
+  a.more { font-size: 11px; color: var(--dim); text-decoration: none; letter-spacing: .04em; border-bottom: 1px solid var(--border); padding-bottom: 1px; }
+  a.more:hover { color: var(--text); }
+  .err { color: #f87171; font-size: 12px; text-align: center; line-height: 1.5; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+  <div class="widget">
+    <div class="brand"><span class="dot" id="dot"></span> NOISECATCHER</div>
+
+    <div class="readout"><span class="db" id="db">––</span><span class="unit">dB(A)</span></div>
+    <div class="label" id="label"></div>
+
+    <div class="bar"><i id="fill"></i></div>
+    <div class="scale"><span>0</span><span>55</span><span>70</span><span>85</span><span>120</span></div>
+
+    <button id="startBtn">Tap to measure</button>
+    <button id="stopBtn" class="ghost hidden">Stop</button>
+
+    <p class="note" id="note">Relative to your device — not a calibrated SPL meter.</p>
+    <p class="err hidden" id="err"></p>
+
+    <a class="more" href="https://noisecatcher.org" target="_blank" rel="noopener">Open the full tool →</a>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+  // A-weighting per IEC 61672-1:2013 — ported verbatim from Noisecatcher's
+  // meter engine so the widget's dB(A) matches the app.
+  function aWeightingDB(f) {
+    if (f <= 0) return -70;
+    var f2 = f * f;
+    var c1 = 12194.217 * 12194.217, c2 = 20.598997 * 20.598997,
+        c3 = 107.65265 * 107.65265, c4 = 737.86223 * 737.86223;
+    var num = c1 * f2 * f2;
+    var den = (f2 + c2) * Math.sqrt((f2 + c3) * (f2 + c4)) * (f2 + c1);
+    return den > 0 ? 20 * Math.log10(num / den) + 2.0 : -70;
+  }
+
+  var THRESHOLDS = [
+    { min: 0,   label: "Safe",      color: "#22c55e" },
+    { min: 55,  label: "Caution",   color: "#eab308" },
+    { min: 70,  label: "Dangerous", color: "#f97316" },
+    { min: 85,  label: "Critical",  color: "#ef4444" },
+    { min: 120, label: "Extreme",   color: "#7c3aed" }
+  ];
+  function threshold(db) {
+    var t = THRESHOLDS[0];
+    for (var i = 0; i < THRESHOLDS.length; i++) if (db >= THRESHOLDS[i].min) t = THRESHOLDS[i];
+    return t;
+  }
+
+  var el = function (id) { return document.getElementById(id); };
+  var ctx = null, analyser = null, mic = null, stream = null, raf = null, aWeights = null, freq = null;
+
+  function measure() {
+    if (!analyser || !freq || !aWeights) return;
+    analyser.getFloatFrequencyData(freq);
+    var bins = freq.length, aSum = 0;
+    for (var i = 1; i < bins; i++) aSum += Math.pow(10, freq[i] / 10) * aWeights[i];
+    var dba = aSum > 0 ? 10 * Math.log10(aSum / (bins - 1)) + 90 : 0;
+    dba = Math.max(0, Math.min(140, dba));
+    var shown = Math.round(dba * 10) / 10;
+    var t = threshold(shown);
+    el("db").textContent = shown.toFixed(1);
+    el("db").style.color = t.color;
+    el("label").textContent = t.label;
+    el("label").style.color = t.color;
+    el("dot").style.background = t.color;
+    var pct = Math.max(0, Math.min(100, (shown / 120) * 100));
+    el("fill").style.width = pct + "%";
+    el("fill").style.background = t.color;
+    raf = requestAnimationFrame(measure);
+  }
+
+  function start() {
+    el("err").classList.add("hidden");
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      return fail("This browser can't access the microphone.");
+    }
+    navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+    }).then(function (s) {
+      stream = s;
+      var AC = window.AudioContext || window.webkitAudioContext;
+      ctx = new AC();
+      // iOS may start the context suspended / suspend it later.
+      var keepAlive = setInterval(function () { if (ctx && ctx.state === "suspended") ctx.resume().catch(function () {}); }, 2000);
+      ctx._keepAlive = keepAlive;
+      if (ctx.state === "suspended") ctx.resume().catch(function () {});
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 2048;
+      analyser.smoothingTimeConstant = 0.3;
+      mic = ctx.createMediaStreamSource(stream);
+      mic.connect(analyser);
+      var bins = analyser.frequencyBinCount, nyquist = ctx.sampleRate / 2;
+      freq = new Float32Array(bins);
+      aWeights = new Float32Array(bins);
+      for (var i = 0; i < bins; i++) aWeights[i] = Math.pow(10, aWeightingDB((i / bins) * nyquist) / 10);
+      el("startBtn").classList.add("hidden");
+      el("stopBtn").classList.remove("hidden");
+      measure();
+    }).catch(function (e) {
+      fail(e && e.name === "NotAllowedError"
+        ? "Microphone access denied — allow it to measure."
+        : "Could not access the microphone.");
+    });
+  }
+
+  function stop() {
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+    if (mic) { try { mic.disconnect(); } catch (e) {} mic = null; }
+    if (ctx) { try { clearInterval(ctx._keepAlive); } catch (e) {} try { ctx.close(); } catch (e) {} ctx = null; }
+    if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
+    analyser = null; freq = null; aWeights = null;
+    el("db").textContent = "––"; el("db").style.color = "";
+    el("label").textContent = ""; el("dot").style.background = "";
+    el("fill").style.width = "0%";
+    el("stopBtn").classList.add("hidden");
+    el("startBtn").classList.remove("hidden");
+  }
+
+  function fail(msg) {
+    var e = el("err"); e.textContent = msg; e.classList.remove("hidden");
+    el("startBtn").classList.remove("hidden");
+    el("stopBtn").classList.add("hidden");
+  }
+
+  el("startBtn").addEventListener("click", start);
+  el("stopBtn").addEventListener("click", stop);
+  window.addEventListener("pagehide", stop);
+})();
+</script>
+</body>
+</html>
